@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ChPriv</title>
+
+<link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+<div id="startup">
+
+<h1>ChPriv</h1>
+
+<input
+    id="nickname"
+    type="text"
+    maxlength="20"
+    placeholder="Il tuo nickname">
+
+<input
+    id="roomPassword"
+    type="password"
+    maxlength="30"
+    placeholder="Password stanza">
+
+<div class="buttons">
+
+<button id="btnCreateRoom">
+    CREA CHAT
+</button>
+
+<button id="btnJoinRoom">
+    ENTRA
+</button>
+
+</div>
+
+<div id="roomInfo"></div>
+
+</div>
+
+<div id="chatContainer" class="hidden">
+
+<header>
+
+<div class="presence">
+
+<div id="meInfo">
+    Tu
+</div>
+
+<div id="otherInfo">
+    In attesa...
+</div>
+
+</div>
+
+<div class="topButtons">
+
+<button id="copyLinkBtn">
+    COPIA LINK
+</button>
+
+<button id="clearBtn">
+    SVUOTA CHAT
+</button>
+
+<button id="exitBtn">
+    ESCI
+</button>
+
+</div>
+
+</header>
+
+<div id="messages"></div>
+
+<div id="emojiBar">
+
+<span>😀</span>
+<span>😂</span>
+<span>😊</span>
+<span>😍</span>
+<span>😎</span>
+
+<span>😭</span>
+<span>🤔</span>
+<span>👍</span>
+<span>👎</span>
+<span>❤️</span>
+
+<span>🔥</span>
+<span>🎉</span>
+<span>👏</span>
+<span>🙏</span>
+<span>😡</span>
+
+</div>
+
+<div id="composer">
+
+<input
+    id="messageInput"
+    type="text"
+    maxlength="500"
+    placeholder="Scrivi un messaggio...">
+
+<button id="sendBtn">
+    INVIA
+</button>
+
+</div>
+
+</div>
+
+<script type="module" src="firebase.js"></script>
+<script type="module" src="app.js"></script>
+
+</body>
+</html>
