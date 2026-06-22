@@ -13,6 +13,14 @@ import {
   getDatabase
 } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-database.js";
 
+import {
+  ref,
+  set,
+  get,
+  remove,
+  onValue
+} from "https://www.gstatic.com/firebasejs/12.15.0/firebase-database.js";
+
 const firebaseConfig = {
   apiKey: "AIzaSyCg-Q8z5ihQxuDtQpTnaq9zYmUwI5on6lg",
   authDomain: "chpriv-8a3da.firebaseapp.com",
@@ -40,5 +48,10 @@ window.chpriv = {
   app,
   auth,
   db,
-  rtdb
+  rtdb,
+  ref,
+  set,
+  get,
+  remove,
+  onValue
 };
