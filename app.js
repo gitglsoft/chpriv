@@ -121,6 +121,8 @@ createBtn.addEventListener("click", async () => {
 
 joinBtn.addEventListener("click", async () => {
 
+  alert("PULSANTE ENTRA PREMUTO");
+  
   const nickname =
     document.getElementById("nickname").value.trim();
 
