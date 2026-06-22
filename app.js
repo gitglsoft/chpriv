@@ -128,6 +128,7 @@ joinBtn.addEventListener("click", async () => {
 
   const roomId =
     getRoomFromUrl();
+  alert("ROOMID=" + roomId);
 
   if (!roomId) {
 
