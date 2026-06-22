@@ -42,11 +42,24 @@ createBtn.addEventListener("click", async () => {
       }
     );
 
-    document.getElementById("roomInfo").innerHTML =
-      `Room ID: ${roomId}`;
+    const roomLink =
+  `${window.location.origin}${window.location.pathname}#room=${roomId}`;
 
-    alert("Stanza creata correttamente");
+document.getElementById("roomInfo").innerHTML = `
+<div>
+Room ID:<br>
+${roomId}
+</div>
+<br>
+<div>
+Link stanza:<br>
+<a href="${roomLink}" target="_blank">
+${roomLink}
+</a>
+</div>
+`;
 
+alert("Stanza creata correttamente");
     console.log("Room creata:", roomId);
 
   } catch (err) {
