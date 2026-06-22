@@ -5,6 +5,22 @@ import {
 } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore.js";
 alert("VERSIONE 22 GIUGNO ORE 16:30");
 
+alert("FIREBASE ARRIVATO QUI");
+
+window.chpriv = {
+  app,
+  auth,
+  db,
+  rtdb,
+  ref,
+  set,
+  get,
+  remove,
+  onValue
+};
+
+alert("WINDOW.CHPRIV CREATO");
+
 console.log("ChPriv v2 avviato");
 setTimeout(() => {
   alert("CHPRIV=" + typeof window.chpriv);
