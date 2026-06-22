@@ -9,9 +9,6 @@ console.log("ChPriv avviato");
 const createBtn = document.getElementById("btnCreateRoom");
 const joinBtn = document.getElementById("btnJoinRoom");
 
-if (!window.chpriv) {
-  alert("Firebase non inizializzato");
-}
 
 createBtn.addEventListener("click", async () => {
 
