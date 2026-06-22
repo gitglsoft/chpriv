@@ -5,6 +5,7 @@ import {
 } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore.js";
 
 console.log("ChPriv v2 avviato");
+alert(typeof window.chpriv);
 
 const createBtn = document.getElementById("btnCreateRoom");
 const joinBtn = document.getElementById("btnJoinRoom");
