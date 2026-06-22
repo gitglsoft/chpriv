@@ -1,44 +1,72 @@
-import { initializeApp } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-app.js";
-
 import {
-  getAuth,
-  signInAnonymously
-} from "https://www.gstatic.com/firebasejs/12.15.0/firebase-auth.js";
-
-import {
-  getFirestore
+  collection,
+  addDoc,
+  serverTimestamp
 } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore.js";
 
-import {
-  getDatabase
-} from "https://www.gstatic.com/firebasejs/12.15.0/firebase-database.js";
+console.log("ChPriv avviato");
 
-const firebaseConfig = {
-  apiKey: "AIzaSyCg-Q8z5ihQxuDtQpTnaq9zYmUwI5on6lg",
-  authDomain: "chpriv-8a3da.firebaseapp.com",
-  projectId: "chpriv-8a3da",
-  storageBucket: "chpriv-8a3da.firebasestorage.app",
-  messagingSenderId: "223253663510",
-  appId: "1:223253663510:web:937363ccd29bed772dca37"
-};
+const createBtn = document.getElementById("btnCreateRoom");
+const joinBtn = document.getElementById("btnJoinRoom");
 
-const app = initializeApp(firebaseConfig);
+createBtn.addEventListener("click", async () => {
 
-const auth = getAuth(app);
-const db = getFirestore(app);
-const rtdb = getDatabase(app);
+  const nickname =
+    document.getElementById("nickname").value.trim();
 
-try {
-  await signInAnonymously(auth);
-  console.log("Login anonimo riuscito");
-}
-catch(error){
-  console.error(error);
-}
+  const password =
+    document.getElementById("roomPassword").value.trim();
 
-window.chpriv = {
-  app,
-  auth,
-  db,
-  rtdb
-};
+  if (!nickname) {
+    alert("Inserisci un nickname");
+    return;
+  }
+
+  if (!password) {
+    alert("Inserisci una password stanza");
+    return;
+  }
+
+  try {
+
+    const roomId = crypto.randomUUID();
+
+    const docRef = await addDoc(
+      collection(window.chpriv.db, "rooms"),
+      {
+        roomId,
+        password,
+        createdBy: nickname,
+        createdAt: serverTimestamp()
+      }
+    );
+
+    alert(
+      "Stanza creata!\n\n" +
+      "Room ID:\n" +
+      roomId +
+      "\n\nDoc:\n" +
+      docRef.id
+    );
+
+    console.log("Room creata", roomId);
+
+  }
+  catch (err) {
+
+    console.error(err);
+
+    alert(
+      "Errore Firestore:\n" +
+      err.message
+    );
+
+  }
+
+});
+
+joinBtn.addEventListener("click", () => {
+
+  alert("ENTRA sarà implementato dopo");
+
+});
