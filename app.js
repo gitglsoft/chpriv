@@ -6,7 +6,9 @@ import {
 alert("VERSIONE 22 GIUGNO ORE 16:30");
 
 console.log("ChPriv v2 avviato");
-alert(typeof window.chpriv);
+setTimeout(() => {
+  alert("CHPRIV=" + typeof window.chpriv);
+}, 2000);
 
 const createBtn = document.getElementById("btnCreateRoom");
 const joinBtn = document.getElementById("btnJoinRoom");
