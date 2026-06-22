@@ -4,11 +4,40 @@ import {
   serverTimestamp
 } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore.js";
 
-console.log("ChPriv avviato");
+console.log("ChPriv v2 avviato");
 
 const createBtn = document.getElementById("btnCreateRoom");
 const joinBtn = document.getElementById("btnJoinRoom");
 
+const roomInfo = document.getElementById("roomInfo");
+
+const meInfo = document.getElementById("meInfo");
+const otherInfo = document.getElementById("otherInfo");
+
+const copyLinkBtn = document.getElementById("copyLinkBtn");
+
+let currentRoomId = null;
+let currentNickname = null;
+
+function getRoomFromUrl() {
+
+  const hash = window.location.hash;
+
+  if (!hash.startsWith("#room=")) {
+    return null;
+  }
+
+  return hash.replace("#room=", "");
+}
+
+const roomFromUrl = getRoomFromUrl();
+
+if (roomFromUrl) {
+
+  roomInfo.innerHTML =
+    `Stanza rilevata:<br>${roomFromUrl}`;
+
+}
 
 createBtn.addEventListener("click", async () => {
 
@@ -32,7 +61,7 @@ createBtn.addEventListener("click", async () => {
 
     const roomId = crypto.randomUUID();
 
-    const docRef = await addDoc(
+    await addDoc(
       collection(window.chpriv.db, "rooms"),
       {
         roomId,
@@ -42,40 +71,156 @@ createBtn.addEventListener("click", async () => {
       }
     );
 
+    currentRoomId = roomId;
+    currentNickname = nickname;
+
     const roomLink =
-  `${window.location.origin}${window.location.pathname}#room=${roomId}`;
+      `${window.location.origin}${window.location.pathname}#room=${roomId}`;
 
-document.getElementById("roomInfo").innerHTML = `
-<div>
-Room ID:<br>
-${roomId}
-</div>
-<br>
-<div>
-Link stanza:<br>
-<a href="${roomLink}" target="_blank">
-${roomLink}
-</a>
-</div>
-`;
+    roomInfo.innerHTML = `
+      <b>Stanza creata</b><br><br>
+      Room ID:<br>
+      ${roomId}
+      <br><br>
+      Link:<br>
+      <a href="${roomLink}" target="_blank">${roomLink}</a>
+    `;
 
-alert("Stanza creata correttamente");
-    console.log("Room creata:", roomId);
+    const presenceRef =
+      window.chpriv.ref(
+        window.chpriv.rtdb,
+        `presence/${roomId}/user1`
+      );
 
-  } catch (err) {
+    await window.chpriv.set(
+      presenceRef,
+      {
+        nickname,
+        connectedAt: Date.now()
+      }
+    );
+
+    meInfo.textContent =
+      `${nickname} (online)`;
+
+    alert("Stanza creata correttamente");
+
+  }
+  catch (err) {
 
     console.error(err);
 
     alert(
-      "Errore Firestore:\n" +
+      "Errore:\n" +
       err.message
     );
   }
 
 });
 
-joinBtn.addEventListener("click", () => {
+joinBtn.addEventListener("click", async () => {
 
-  alert("Funzione ENTRA non ancora implementata");
+  const nickname =
+    document.getElementById("nickname").value.trim();
 
+  const roomId =
+    getRoomFromUrl();
+
+  if (!roomId) {
+
+    alert(
+      "Apri un link stanza valido"
+    );
+
+    return;
+  }
+
+  if (!nickname) {
+
+    alert(
+      "Inserisci nickname"
+    );
+
+    return;
+  }
+
+  try {
+
+    const roomRef =
+      window.chpriv.ref(
+        window.chpriv.rtdb,
+        `presence/${roomId}`
+      );
+
+    const snap =
+      await window.chpriv.get(roomRef);
+
+    const data =
+      snap.exists()
+        ? snap.val()
+        : {};
+
+    const userCount =
+      Object.keys(data).length;
+
+    if (userCount >= 2) {
+
+      alert(
+        "ERRORE DI ACCESSO\n\n" +
+        "Accesso Negato\n\n" +
+        "Tentativo di accesso non autorizzato"
+      );
+
+      return;
+    }
+
+    const userRef =
+      window.chpriv.ref(
+        window.chpriv.rtdb,
+        `presence/${roomId}/user2`
+      );
+
+    await window.chpriv.set(
+      userRef,
+      {
+        nickname,
+        connectedAt: Date.now()
+      }
+    );
+
+    meInfo.textContent =
+      `${nickname} (online)`;
+
+    otherInfo.textContent =
+      "Collegamento in corso...";
+
+    alert("Ingresso effettuato");
+
+  }
+  catch (err) {
+
+    console.error(err);
+
+    alert(err.message);
+  }
+
+});
+
+copyLinkBtn.addEventListener("click", async () => {
+
+  if (!currentRoomId) {
+
+    alert("Nessuna stanza");
+
+    return;
+  }
+
+  const roomLink =
+    `${window.location.origin}${window.location.pathname}#room=${currentRoomId}`;
+
+  await navigator.clipboard.writeText(
+    roomLink
+  );
+
+  alert("Link copiato");
 });
