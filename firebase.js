@@ -10,16 +10,15 @@ import {
 } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore.js";
 
 import {
-  getDatabase
-} from "https://www.gstatic.com/firebasejs/12.15.0/firebase-database.js";
-
-import {
+  getDatabase,
   ref,
   set,
   get,
   remove,
   onValue
 } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-database.js";
+
+console.log("firebase.js caricato");
 
 const firebaseConfig = {
   apiKey: "AIzaSyCg-Q8z5ihQxuDtQpTnaq9zYmUwI5on6lg",
@@ -37,11 +36,15 @@ const db = getFirestore(app);
 const rtdb = getDatabase(app);
 
 try {
+
   await signInAnonymously(auth);
+
   console.log("Login anonimo riuscito");
-}
-catch(error){
-  console.error(error);
+
+} catch (error) {
+
+  console.error("Errore login anonimo:", error);
+
 }
 
 window.chpriv = {
@@ -56,3 +59,4 @@ window.chpriv = {
   onValue
 };
 
+console.log("window.chpriv creato");
