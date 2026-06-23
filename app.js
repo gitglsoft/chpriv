@@ -157,9 +157,7 @@ const roomRef =
 alert("PASSO B");
 
 alert("RTDB=" + typeof window.chpriv.rtdb);
-
 alert("REF=" + typeof window.chpriv.ref);
-
 alert("GET=" + typeof window.chpriv.get);
 
 try {
