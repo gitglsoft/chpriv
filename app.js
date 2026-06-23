@@ -133,37 +133,101 @@ createBtn.addEventListener("click", async () => {
 
 joinBtn.addEventListener("click", async () => {
 
+alert("PULSANTE ENTRA PREMUTO");
+
+const nickname =
+document.getElementById("nickname").value.trim();
+
+const roomId =
+getRoomFromUrl();
+
+if (!roomId) {
+
+```
+alert("Apri un link stanza valido");
+
+return;
+```
+
+}
+
+if (!nickname) {
+
+```
+alert("Inserisci nickname");
+
+return;
+```
+
+}
+
+try {
+
+```
+const roomRef =
+  window.chpriv.ref(
+    window.chpriv.rtdb,
+    `presence/${roomId}`
+  );
+
+const snap =
+  await window.chpriv.get(roomRef);
+
+const data =
+  snap.exists()
+    ? snap.val()
+    : {};
+
+const userCount =
+  Object.keys(data).length;
+
+if (userCount >= 2) {
+
+  alert(
+    "ERRORE DI ACCESSO\n\n" +
+    "Accesso Negato\n\n" +
+    "Tentativo di accesso non autorizzato"
+  );
+
+  return;
+
+}
+
+const userRef =
+  window.chpriv.ref(
+    window.chpriv.rtdb,
+    `presence/${roomId}/user2`
+  );
+
+await window.chpriv.set(
+  userRef,
+  {
+    nickname,
+    connectedAt: Date.now()
+  }
+);
+
+meInfo.textContent =
+  `${nickname} (online)`;
+
+otherInfo.textContent =
+  "Collegamento in corso...";
+
 alert("Ingresso effettuato");
+```
 
 }
 catch (err) {
 
-  console.error(err);
+```
+console.error(err);
 
-  alert(
-    "ERRORE:\n" +
-    err.message
-  );
+alert(
+  "ERRORE:\n" +
+  err.message
+);
+```
 
 }
 
-});
-
-copyLinkBtn.addEventListener("click", async () => {
-
-  if (!currentRoomId) {
-
-    alert("Nessuna stanza");
-
-    return;
-  }
-
-  const roomLink =
-    `${window.location.origin}${window.location.pathname}#room=${currentRoomId}`;
-
-  await navigator.clipboard.writeText(
-    roomLink
-  );
-
-  alert("Link copiato");
 });
