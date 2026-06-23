@@ -158,8 +158,12 @@ alert("PASSO B");
 
 try {
 
-  const snap =
-    await window.chpriv.get(roomRef);
+alert("PRIMA DEL GET");
+
+const snap =
+  await window.chpriv.get(roomRef);
+
+alert("DOPO IL GET");
 
   alert("PASSO C");
 
