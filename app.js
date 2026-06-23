@@ -244,4 +244,3 @@ copyLinkBtn.addEventListener("click", async () => {
 
   alert("Link copiato");
 });
-
