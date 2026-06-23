@@ -156,10 +156,24 @@ const roomRef =
 
 alert("PASSO B");
 
-const snap =
-  await window.chpriv.get(roomRef);
+try {
 
-alert("PASSO C");
+  const snap =
+    await window.chpriv.get(roomRef);
+
+  alert("PASSO C");
+
+}
+catch(err) {
+
+  alert(
+    "ERRORE GET:\n" +
+    err.message
+  );
+
+  console.error(err);
+
+}
  
   // COMMENTA TEMPORANEAMENTE QUESTO BLOCCO
 /*
