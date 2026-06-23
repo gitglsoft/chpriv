@@ -3,10 +3,6 @@ import {
   addDoc,
   serverTimestamp
 } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore.js";
-alert("VERSIONE 23 GIUGNO ORE 16:30");
-
-
-alert("WINDOW.CHPRIV CREATO");
 
 console.log("ChPriv v2 avviato");
 setTimeout(() => {
@@ -137,54 +133,37 @@ createBtn.addEventListener("click", async () => {
 
 joinBtn.addEventListener("click", async () => {
 
-  alert("PULSANTE ENTRA PREMUTO");
-  
-  const nickname =
-    document.getElementById("nickname").value.trim();
+alert("PULSANTE ENTRA PREMUTO");
 
-  const roomId =
-    getRoomFromUrl();
-  alert("ROOMID=" + roomId);
+const nickname =
+document.getElementById("nickname").value.trim();
 
-  alert("PASSO A");
+const roomId =
+getRoomFromUrl();
 
-const roomRef =
-  window.chpriv.ref(
-    window.chpriv.rtdb,
-    `presence/${roomId}`
-  );
+if (!roomId) {
 
-alert("PASSO B");
+```
+alert("Apri un link stanza valido");
 
-alert("RTDB=" + typeof window.chpriv.rtdb);
-alert("REF=" + typeof window.chpriv.ref);
-alert("GET=" + typeof window.chpriv.get);
+return;
+```
+
+}
+
+if (!nickname) {
+
+```
+alert("Inserisci nickname");
+
+return;
+```
+
+}
 
 try {
 
-alert("PRIMA DEL GET");
-
-const snap =
-  await window.chpriv.get(roomRef);
-
-alert("DOPO IL GET");
-
-  alert("PASSO C");
-
-}
-catch(err) {
-
-  alert(
-    "ERRORE GET:\n" +
-    err.message
-  );
-
-  console.error(err);
-
-}
- 
-  // COMMENTA TEMPORANEAMENTE QUESTO BLOCCO
-/*
+```
 const roomRef =
   window.chpriv.ref(
     window.chpriv.rtdb,
@@ -193,86 +172,59 @@ const roomRef =
 
 const snap =
   await window.chpriv.get(roomRef);
-*/
-  
-  alert("PASSO A");
 
+const data =
+  snap.exists()
+    ? snap.val()
+    : {};
 
+const userCount =
+  Object.keys(data).length;
 
-alert("PASSO C");
+if (userCount >= 2) {
 
-  if (!roomId) {
+  alert(
+    "ERRORE DI ACCESSO\n\n" +
+    "Accesso Negato\n\n" +
+    "Tentativo di accesso non autorizzato"
+  );
 
-    alert(
-      "Apri un link stanza valido"
-    );
+  return;
+}
 
-    return;
+const userRef =
+  window.chpriv.ref(
+    window.chpriv.rtdb,
+    `presence/${roomId}/user2`
+  );
+
+await window.chpriv.set(
+  userRef,
+  {
+    nickname,
+    connectedAt: Date.now()
   }
+);
 
-  if (!nickname) {
+meInfo.textContent =
+  `${nickname} (online)`;
 
-    alert(
-      "Inserisci nickname"
-    );
+otherInfo.textContent =
+  "Collegamento in corso...";
 
-    return;
-  }
+alert("Ingresso effettuato");
+```
 
-  try {
+}
+catch (err) {
 
-    
+```
+console.error(err);
 
-    const data =
-      snap.exists()
-        ? snap.val()
-        : {};
-
-    const userCount =
-      Object.keys(data).length;
-
-    if (userCount >= 2) {
-
-      alert(
-        "ERRORE DI ACCESSO\n\n" +
-        "Accesso Negato\n\n" +
-        "Tentativo di accesso non autorizzato"
-      );
-
-      return;
-    }
-
-    const userRef =
-      window.chpriv.ref(
-        window.chpriv.rtdb,
-        `presence/${roomId}/user2`
-      );
-
-    await window.chpriv.set(
-      userRef,
-      {
-        nickname,
-        connectedAt: Date.now()
-      }
-    );
-
-    meInfo.textContent =
-      `${nickname} (online)`;
-
-    otherInfo.textContent =
-      "Collegamento in corso...";
-
-    alert("Ingresso effettuato");
-
-  }
-  catch (err) {
-
-    console.error(err);
-
-    alert(err.message);
-  }
-
-});
+alert(
+  "ERRORE:\n" +
+  err.message
+);
 
 copyLinkBtn.addEventListener("click", async () => {
 
