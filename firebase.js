@@ -33,7 +33,10 @@ const app = initializeApp(firebaseConfig);
 
 const auth = getAuth(app);
 const db = getFirestore(app);
-const rtdb = getDatabase(app);
+const rtdb = getDatabase(
+  app,
+  "https://chpriv-8a3da-default-rtdb.europe-west1.firebasedatabase.app"
+);
 
 try {
 
