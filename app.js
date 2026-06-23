@@ -143,27 +143,25 @@ getRoomFromUrl();
 
 if (!roomId) {
 
-```
 alert("Apri un link stanza valido");
 
 return;
-```
 
 }
 
 if (!nickname) {
 
-```
+
 alert("Inserisci nickname");
 
 return;
-```
+
 
 }
 
 try {
 
-```
+
 const roomRef =
   window.chpriv.ref(
     window.chpriv.rtdb,
