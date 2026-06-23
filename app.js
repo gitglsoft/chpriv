@@ -135,7 +135,7 @@ joinBtn.addEventListener("click", async () => {
   const roomId =
     getRoomFromUrl();
   alert("ROOMID=" + roomId);
-  
+
   alert("PASSO A");
 
 const roomRef =
@@ -148,6 +148,24 @@ alert("PASSO B");
 
 const snap =
   await window.chpriv.get(roomRef);
+
+alert("PASSO C");
+ 
+  // COMMENTA TEMPORANEAMENTE QUESTO BLOCCO
+/*
+const roomRef =
+  window.chpriv.ref(
+    window.chpriv.rtdb,
+    `presence/${roomId}`
+  );
+
+const snap =
+  await window.chpriv.get(roomRef);
+*/
+  
+  alert("PASSO A");
+
+
 
 alert("PASSO C");
 
