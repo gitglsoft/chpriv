@@ -28,13 +28,23 @@ let currentNickname = null;
 
 function getRoomFromUrl() {
 
+  alert("HASH=" + window.location.hash);
+
   const hash = window.location.hash;
 
   if (!hash.startsWith("#room=")) {
+
+    alert("HASH NON VALIDO");
+
     return null;
   }
 
-  return hash.replace("#room=", "");
+  const roomId =
+    hash.replace("#room=", "");
+
+  alert("ROOM TROVATA=" + roomId);
+
+  return roomId;
 }
 
 const roomFromUrl = getRoomFromUrl();
