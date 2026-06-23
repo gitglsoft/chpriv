@@ -51,7 +51,7 @@ return;
 
 try {
 
-```
+
 const roomId = crypto.randomUUID();
 
 await addDoc(
@@ -67,7 +67,7 @@ await addDoc(
 currentRoomId = roomId;
 
 const roomLink =
-  `${window.location.origin}${window.location.pathname}#room=${roomId}`;
+  ${window.location.origin}${window.location.pathname}#room=${roomId}`;
 
 roomInfo.innerHTML = `
   <b>Stanza creata</b><br><br>
@@ -98,19 +98,19 @@ meInfo.textContent =
   `${nickname} (online)`;
 
 alert("Stanza creata correttamente");
-```
+
 
 }
 catch (err) {
 
-```
+
 console.error(err);
 
 alert(
   "Errore:\n" +
   err.message
 );
-```
+
 
 }
 
@@ -127,19 +127,18 @@ getRoomFromUrl();
 
 if (!nickname || !roomId) {
 
-```
 alert(
   "Inserisci nickname o manca ID stanza nel link"
 );
 
 return;
-```
+
 
 }
 
 try {
 
-```
+
 const roomRef =
   window.chpriv.ref(
     window.chpriv.rtdb,
@@ -189,19 +188,19 @@ otherInfo.textContent =
   "Connesso alla stanza";
 
 alert("Ingresso effettuato");
-```
+
 
 }
 catch (err) {
 
-```
+
 console.error(err);
 
 alert(
   "Errore:\n" +
   err.message
 );
-```
+
 
 }
 
