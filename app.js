@@ -135,6 +135,21 @@ joinBtn.addEventListener("click", async () => {
   const roomId =
     getRoomFromUrl();
   alert("ROOMID=" + roomId);
+  
+  alert("PASSO A");
+
+const roomRef =
+  window.chpriv.ref(
+    window.chpriv.rtdb,
+    `presence/${roomId}`
+  );
+
+alert("PASSO B");
+
+const snap =
+  await window.chpriv.get(roomRef);
+
+alert("PASSO C");
 
   if (!roomId) {
 
