@@ -223,14 +223,7 @@ alert("PASSO C");
 
   try {
 
-    const roomRef =
-      window.chpriv.ref(
-        window.chpriv.rtdb,
-        `presence/${roomId}`
-      );
-
-    const snap =
-      await window.chpriv.get(roomRef);
+    
 
     const data =
       snap.exists()
