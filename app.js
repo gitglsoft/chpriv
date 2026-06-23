@@ -225,6 +225,10 @@ alert(
   "ERRORE:\n" +
   err.message
 );
+ 
+}
+
+});
 
 copyLinkBtn.addEventListener("click", async () => {
 
