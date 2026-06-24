@@ -1,16 +1,16 @@
-    <!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="it">
 <head>
-    <link rel="icon" type="image/png" href="favicon.png">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ChPriv - Chat Privata</title>
+    <link rel="icon" type="image/png" href="favicon.png">
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
     <div id="startup">
-        <h1>ChPriv</h1>
+        <img src="logo.png" alt="Logo" class="main-logo">
         <input type="text" id="nickname" placeholder="Il tuo nickname">
         <input type="password" id="password" placeholder="Password stanza">
         <div class="buttons">
@@ -20,11 +20,9 @@
     </div>
 
     <div id="chatContainer" class="hidden">
-        <header>    
-        <div class="logo-container">
-            <img src="logo.png" alt="Logo" style="height: 40px;">
-            <span>ChPriv</span>
+        <header>
             <div id="otherInfo">In attesa...</div>
+            <img src="logo.png" alt="Logo" class="header-logo">
             <div class="topButtons">
                 <button id="copyLinkBtn">Copia Link</button>
                 <button id="clearBtn">Svuota</button>
@@ -35,8 +33,6 @@
         <div id="messages"></div>
 
         <div id="emojiBar">
-            <span onclick="document.getElementById('messageInput').value += '😊'">😊</span>
-            <span onclick="document.getElementById('messageInput').value += '😂'">😂</span>
             <span onclick="document.getElementById('messageInput').value += '🍒'">🍒</span>
             <span onclick="document.getElementById('messageInput').value += '🥔'">🥔</span>
             <span onclick="document.getElementById('messageInput').value += '🍌'">🍌</span>
@@ -48,7 +44,7 @@
             <span onclick="document.getElementById('messageInput').value += '🐋'">🐋</span>
             <span onclick="document.getElementById('messageInput').value += '🚰'">🚰</span>
             <span onclick="document.getElementById('messageInput').value += '🌡️'">🌡️</span>
-            <span onclick="document.getElementById('emojiBar').value += '🍆'">🍆</span>
+            <span onclick="document.getElementById('messageInput').value += '🍆'">🍆</span>
             <span onclick="document.getElementById('messageInput').value += '💦'">💦</span>
             <span onclick="document.getElementById('messageInput').value += '🟣'">🟣</span>
             <span onclick="document.getElementById('messageInput').value += '🐷'">🐷</span>
@@ -57,7 +53,6 @@
             <span onclick="document.getElementById('messageInput').value += '👅'">👅</span>
             <span onclick="document.getElementById('messageInput').value += '🫂'">🫂</span>
             <span onclick="document.getElementById('messageInput').value += '💆‍♀️'">💆‍♀️</span>
- 
         </div>
 
         <div id="composer">
