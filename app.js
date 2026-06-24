@@ -1,7 +1,6 @@
 import { collection, addDoc, serverTimestamp, query, orderBy, onSnapshot, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore.js";
 import { initFirebase } from "./firebase.js";
 
-// Impedisce esecuzioni multiple
 if (!window.appInitialized) {
     window.appInitialized = true;
     await initFirebase();
@@ -90,8 +89,13 @@ if (!window.appInitialized) {
         const roomId = hash.split("#room=")[1];
         const snapshot = await window.chpriv.get(window.chpriv.ref(window.chpriv.rtdb, `presence/${roomId}`));
         const data = snapshot.exists() ? snapshot.val() : {};
-        if (Object.keys(data).length >= 2) return alert("ERRORE: Stanza piena.");
-        await window.chpriv.set(window.chpriv.ref(window.chpriv.rtdb, `presence/${roomId}/user2`), { nickname });
+        
+        let role = null;
+        if (!data.user1) role = "user1";
+        else if (!data.user2) role = "user2";
+        else return alert("ERRORE: La stanza è piena.");
+        
+        await window.chpriv.set(window.chpriv.ref(window.chpriv.rtdb, `presence/${roomId}/${role}`), { nickname });
         watchPresence(roomId);
         startMessageListener(roomId);
         showChat(roomId);
@@ -100,5 +104,21 @@ if (!window.appInitialized) {
     sendBtn.addEventListener("click", sendMessage);
     messageInput.addEventListener("keypress", (e) => { if (e.key === "Enter") sendMessage(); });
     copyLinkBtn.addEventListener("click", () => { navigator.clipboard.writeText(window.location.href); alert("Link copiato!"); });
-    exitBtn.addEventListener("click", () => { window.location.hash = ""; window.location.reload(); });
+    
+    // Uscita pulita: rimuove l'utente dal database
+    exitBtn.addEventListener("click", async () => {
+        const roomId = window.location.hash.split("#room=")[1];
+        const myNickname = nicknameInput.value.trim();
+        const snapshot = await window.chpriv.get(window.chpriv.ref(window.chpriv.rtdb, `presence/${roomId}`));
+        const data = snapshot.val();
+        
+        // Trova e rimuovi l'utente corrente
+        for (let role in data) {
+            if (data[role].nickname === myNickname) {
+                await window.chpriv.set(window.chpriv.ref(window.chpriv.rtdb, `presence/${roomId}/${role}`), null);
+            }
+        }
+        window.location.hash = "";
+        window.location.reload();
+    });
 }
