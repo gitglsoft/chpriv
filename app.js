@@ -27,39 +27,44 @@ return hash.replace("#room=", "");
 // MONITOR PRESENZA UTENTI
 function watchPresence(roomId, myNickname) {
 
-const roomRef =
-window.chpriv.ref(
-window.chpriv.rtdb,
-`presence/${roomId}`
-);
-
-window.chpriv.onValue(
-roomRef,
-(snapshot) => {
-
-```
-  const data =
-    snapshot.exists()
-      ? snapshot.val()
-      : {};
-
-  const users =
-    Object.values(data);
-
-  const otherUser =
-    users.find(
-      user => user.nickname !== myNickname
+  const roomRef =
+    window.chpriv.ref(
+      window.chpriv.rtdb,
+      `presence/${roomId}`
     );
 
-  if (otherUser) {
+  window.chpriv.onValue(
+    roomRef,
+    (snapshot) => {
 
-    otherInfo.textContent =
-      otherUser.nickname + " (online)";
+      const data =
+        snapshot.exists()
+          ? snapshot.val()
+          : {};
 
-  } else {
+      const users =
+        Object.values(data);
 
-    otherInfo.textContent =
-      "In attesa dell'altro utente...";
+      const otherUser =
+        users.find(
+          user => user.nickname !== myNickname
+        );
+
+      if (otherUser) {
+
+        otherInfo.textContent =
+          otherUser.nickname + " (online)";
+
+      } else {
+
+        otherInfo.textContent =
+          "In attesa dell'altro utente...";
+      }
+
+    }
+  );
+
+}
   }
 
 }
