@@ -67,10 +67,15 @@ btnCreateRoom.addEventListener("click", async () => {
 
 btnJoinRoom.addEventListener("click", async () => {
     const nickname = nicknameInput.value.trim();
-    const roomId = window.location.hash.split("#room=")[1];
-    if (!roomId) return alert("Link non valido!");
+    const hash = window.location.hash;
+    if (!hash.includes("#room=")) return alert("Link non valido!");
+    const roomId = hash.split("#room=")[1];
+    
     const snapshot = await window.chpriv.get(window.chpriv.ref(window.chpriv.rtdb, `presence/${roomId}`));
-    if (Object.keys(snapshot.exists() ? snapshot.val() : {}).length >= 2) return alert("Stanza piena!");
+    const data = snapshot.exists() ? snapshot.val() : {};
+    
+    if (Object.keys(data).length >= 2) return alert("ERRORE: La stanza è piena.");
+    
     await window.chpriv.set(window.chpriv.ref(window.chpriv.rtdb, `presence/${roomId}/user2`), { nickname });
     watchPresence(roomId);
     startMessageListener(roomId);
@@ -81,7 +86,11 @@ sendBtn.addEventListener("click", async () => {
     const text = messageInput.value.trim();
     const roomId = window.location.hash.split("#room=")[1];
     if (text && roomId) {
-        await addDoc(collection(window.chpriv.db, "messages", roomId, "list"), { text, sender: nicknameInput.value, createdAt: serverTimestamp() });
+        await addDoc(collection(window.chpriv.db, "messages", roomId, "list"), {
+            text,
+            sender: nicknameInput.value,
+            createdAt: serverTimestamp()
+        });
         messageInput.value = "";
     }
 });
