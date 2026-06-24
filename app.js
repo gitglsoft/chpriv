@@ -1,136 +1,70 @@
-import { collection, addDoc, serverTimestamp, query, orderBy, onSnapshot, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore.js";
+import { collection, addDoc, serverTimestamp, query, orderBy, onSnapshot, deleteDoc, doc, getDocs } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore.js";
 import { initFirebase } from "./firebase.js";
 
 if (!window.appInitialized) {
     window.appInitialized = true;
     await initFirebase();
 
-    const startupDiv = document.getElementById("startup");
-    const chatContainer = document.getElementById("chatContainer");
-    const nicknameInput = document.getElementById("nickname");
-    const btnCreateRoom = document.getElementById("btnCreateRoom");
-    const btnJoinRoom = document.getElementById("btnJoinRoom");
-    const messageInput = document.getElementById("messageInput");
-    const sendBtn = document.getElementById("sendBtn");
-    const messagesDiv = document.getElementById("messages");
-    const copyLinkBtn = document.getElementById("copyLinkBtn");
-    const exitBtn = document.getElementById("exitBtn");
+    const startupDiv = document.getElementById("startup"), chatContainer = document.getElementById("chatContainer"), nicknameInput = document.getElementById("nickname"), btnCreateRoom = document.getElementById("btnCreateRoom"), btnJoinRoom = document.getElementById("btnJoinRoom"), messageInput = document.getElementById("messageInput"), sendBtn = document.getElementById("sendBtn"), messagesDiv = document.getElementById("messages"), copyLinkBtn = document.getElementById("copyLinkBtn"), exitBtn = document.getElementById("exitBtn"), clearBtn = document.getElementById("clearBtn");
 
-    function showChat(roomId) {
-        startupDiv.classList.add("hidden");
-        chatContainer.classList.remove("hidden");
-        window.location.hash = `#room=${roomId}`;
+    function getRoomId() {
+        let roomId = window.location.hash.split("#room=")[1];
+        if (!roomId) { roomId = localStorage.getItem("myRoomId") || crypto.randomUUID(); localStorage.setItem("myRoomId", roomId); }
+        return roomId;
     }
 
-    function watchPresence(roomId) {
-        const presenceRef = window.chpriv.ref(window.chpriv.rtdb, `presence/${roomId}`);
-        window.chpriv.onValue(presenceRef, (snapshot) => {
-            const data = snapshot.val();
-            const otherInfo = document.getElementById("otherInfo");
-            const myNickname = nicknameInput.value.trim();
-            if (!data) return;
-            const users = Object.values(data);
-            const otherUser = users.find(u => u.nickname !== myNickname);
-            otherInfo.textContent = otherUser ? `${otherUser.nickname} è online` : "In attesa...";
-            otherInfo.style.color = otherUser ? "green" : "orange";
-        });
-    }
+    function showChat(roomId) { startupDiv.classList.add("hidden"); chatContainer.classList.remove("hidden"); window.location.hash = `#room=${roomId}`; }
 
-    function startMessageListener(roomId) {
-        const q = query(collection(window.chpriv.db, "messages", roomId, "list"), orderBy("createdAt"));
-        onSnapshot(q, (snapshot) => {
+    async function startMessageListener(roomId) {
+        const presenceSnap = await window.chpriv.get(window.chpriv.ref(window.chpriv.rtdb, `presence/${roomId}`));
+        const userCount = presenceSnap.exists() ? Object.keys(presenceSnap.val()).length : 0;
+
+        onSnapshot(query(collection(window.chpriv.db, "messages", roomId, "list"), orderBy("createdAt")), (snapshot) => {
             snapshot.docChanges().forEach((change) => {
                 if (change.type === "added") {
-                    const data = change.doc.data();
-                    const msgEl = document.createElement("div");
-                    msgEl.className = "message";
-                    msgEl.innerHTML = `<span>${data.sender}: </span><span class="blur-text" style="filter: blur(5px);">[Messaggio Criptato]</span>`;
-                    const readBtn = document.createElement("button");
-                    readBtn.textContent = "Leggi";
-                    readBtn.onclick = () => {
-                        msgEl.querySelector(".blur-text").textContent = data.text;
-                        msgEl.querySelector(".blur-text").style.filter = "none";
-                        readBtn.style.display = "none";
-                        setTimeout(async () => {
-                            msgEl.remove();
-                            try { await deleteDoc(doc(window.chpriv.db, "messages", roomId, "list", change.doc.id)); } catch (e) {}
-                        }, 3000);
-                    };
-                    msgEl.appendChild(readBtn);
-                    messagesDiv.appendChild(msgEl);
+                    const data = change.doc.data(), msgEl = document.createElement("div"); msgEl.className = "message";
+                    if (userCount === 2) {
+                        msgEl.innerHTML = `<span>${data.sender}: </span><span>${data.text}</span>`;
+                        messagesDiv.appendChild(msgEl);
+                    } else {
+                        msgEl.innerHTML = `<span>${data.sender}: </span><span class="blur-text">[Messaggio Criptato]</span>`;
+                        const readBtn = document.createElement("button"); readBtn.textContent = "Leggi";
+                        readBtn.onclick = () => { msgEl.querySelector(".blur-text").textContent = data.text; msgEl.querySelector(".blur-text").style.filter = "none"; readBtn.style.display = "none"; setTimeout(async () => { msgEl.remove(); try { await deleteDoc(doc(window.chpriv.db, "messages", roomId, "list", change.doc.id)); } catch (e) {} }, 3000); };
+                        msgEl.appendChild(readBtn); messagesDiv.appendChild(msgEl);
+                    }
                 }
             });
         });
     }
 
     async function sendMessage() {
-        const text = messageInput.value.trim();
-        const roomId = window.location.hash.split("#room=")[1];
-        if (text && roomId) {
-            await addDoc(collection(window.chpriv.db, "messages", roomId, "list"), { text, sender: nicknameInput.value, createdAt: serverTimestamp() });
-            messageInput.value = "";
-        }
+        const text = messageInput.value.trim(), roomId = getRoomId();
+        if (text && roomId) { await addDoc(collection(window.chpriv.db, "messages", roomId, "list"), { text, sender: nicknameInput.value, createdAt: serverTimestamp() }); messageInput.value = ""; }
     }
 
     btnCreateRoom.addEventListener("click", async () => {
-        const nickname = nicknameInput.value.trim();
-        if (!nickname) return alert("Inserisci nickname!");
-        const roomId = crypto.randomUUID();
-        await window.chpriv.set(window.chpriv.ref(window.chpriv.rtdb, `presence/${roomId}/user1`), { nickname });
-        watchPresence(roomId);
-        startMessageListener(roomId);
-        showChat(roomId);
+        const nickname = nicknameInput.value.trim(); if (!nickname) return alert("Inserisci nickname!");
+        const roomId = getRoomId(); await window.chpriv.set(window.chpriv.ref(window.chpriv.rtdb, `presence/${roomId}/user1`), { nickname }); startMessageListener(roomId); showChat(roomId);
     });
 
     btnJoinRoom.addEventListener("click", async () => {
-        const nickname = nicknameInput.value.trim();
-        const hash = window.location.hash;
-        if (!hash.includes("#room=")) return alert("Link non valido!");
-        const roomId = hash.split("#room=")[1];
+        const nickname = nicknameInput.value.trim(), roomId = getRoomId();
         const snapshot = await window.chpriv.get(window.chpriv.ref(window.chpriv.rtdb, `presence/${roomId}`));
         const data = snapshot.exists() ? snapshot.val() : {};
-        
-        let role = null;
-        if (!data.user1) role = "user1";
-        else if (!data.user2) role = "user2";
-        else return alert("ERRORE: La stanza è piena.");
-        
-        await window.chpriv.set(window.chpriv.ref(window.chpriv.rtdb, `presence/${roomId}/${role}`), { nickname });
-        watchPresence(roomId);
-        startMessageListener(roomId);
-        showChat(roomId);
+        let role = !data.user1 ? "user1" : !data.user2 ? "user2" : null;
+        if (!role) return alert("ERRORE: Stanza piena.");
+        await window.chpriv.set(window.chpriv.ref(window.chpriv.rtdb, `presence/${roomId}/${role}`), { nickname }); startMessageListener(roomId); showChat(roomId);
     });
 
-    // Eventi di interfaccia
+    clearBtn.addEventListener("click", async () => {
+        const roomId = getRoomId();
+        const snapshot = await getDocs(query(collection(window.chpriv.db, "messages", roomId, "list")));
+        snapshot.forEach(async (d) => await deleteDoc(doc(window.chpriv.db, "messages", roomId, "list", d.id)));
+        messagesDiv.innerHTML = "";
+    });
+
     sendBtn.addEventListener("click", sendMessage);
-    
-    // Gestione tasto Invio (UNICA volta)
-    messageInput.addEventListener("keypress", (e) => { 
-        if (e.key === "Enter") sendMessage(); 
-    });
-
-    copyLinkBtn.addEventListener("click", () => { 
-        navigator.clipboard.writeText(window.location.href); 
-        alert("Link copiato!"); 
-    });
-    
-    // Uscita pulita: rimuove l'utente dal database
-    exitBtn.addEventListener("click", async () => {
-        const roomId = window.location.hash.split("#room=")[1];
-        if (!roomId) return window.location.reload();
-        
-        const snapshot = await window.chpriv.get(window.chpriv.ref(window.chpriv.rtdb, `presence/${roomId}`));
-        const data = snapshot.val();
-        
-        if (data) {
-            const myNickname = nicknameInput.value.trim();
-            for (let role in data) {
-                if (data[role].nickname === myNickname) {
-                    await window.chpriv.set(window.chpriv.ref(window.chpriv.rtdb, `presence/${roomId}/${role}`), null);
-                }
-            }
-        }
-        window.location.hash = "";
-        window.location.reload();
-    });
+    messageInput.addEventListener("keypress", (e) => { if (e.key === "Enter") sendMessage(); });
+    copyLinkBtn.addEventListener("click", () => { navigator.clipboard.writeText(window.location.href); alert("Link copiato!"); });
+    exitBtn.addEventListener("click", async () => { window.location.hash = ""; window.location.reload(); });
 }
