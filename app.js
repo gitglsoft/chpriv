@@ -143,7 +143,7 @@ joinBtn.addEventListener("click", async () => {
     });
 
     meInfo.textContent = `${nickname} (online)`;
-    otherInfo.textContent = "Connesso alla stanza";
+    watchPresence(roomId, nickname);
     alert("Ingresso effettuato");
   } catch (err) {
     console.error(err);
