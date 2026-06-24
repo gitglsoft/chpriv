@@ -1,66 +1,85 @@
 import { collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore.js";
 import { initFirebase } from "./firebase.js";
 
+// Inizializza subito
 await initFirebase();
 
 const startupDiv = document.getElementById("startup");
 const chatContainer = document.getElementById("chatContainer");
 const roomInfo = document.getElementById("roomInfo");
+const nicknameInput = document.getElementById("nickname");
 const btnCreateRoom = document.getElementById("btnCreateRoom");
 const btnJoinRoom = document.getElementById("btnJoinRoom");
 
-// Funzione di utilità per cambiare schermata
 function showChat() {
     startupDiv.classList.add("hidden");
     chatContainer.classList.remove("hidden");
 }
 
-// CREA STANZA
+// CREA CHAT
 btnCreateRoom.addEventListener("click", async () => {
-    const nickname = document.getElementById("nickname").value.trim();
+    const nickname = nicknameInput.value.trim();
     if (!nickname) return alert("Inserisci un nickname!");
 
-    const roomId = crypto.randomUUID(); // Genera ID univoco
-    
-    // Scrive nel database che l'utente 1 è dentro
-    await window.chpriv.set(window.chpriv.ref(window.chpriv.rtdb, `presence/${roomId}/user1`), {
-        nickname: nickname,
-        joinedAt: Date.now()
-    });
+    try {
+        const roomId = crypto.randomUUID();
+        console.log("Creazione stanza:", roomId);
 
-    // Mostra il link
-    const roomLink = `${window.location.origin}${window.location.pathname}#room=${roomId}`;
-    roomInfo.innerHTML = `Stanza creata! Copia questo link e invialo al tuo contatto:<br><br><b>${roomLink}</b>`;
-    
-    // Bottone per copiare
-    navigator.clipboard.writeText(roomLink);
-    alert("Link copiato negli appunti! Ora attendi l'altro utente.");
-    showChat();
+        // 1. Salva in RTDB
+        await window.chpriv.set(window.chpriv.ref(window.chpriv.rtdb, `presence/${roomId}/user1`), {
+            nickname: nickname,
+            joinedAt: Date.now()
+        });
+
+        // 2. Genera Link
+        const roomLink = `${window.location.origin}${window.location.pathname}#room=${roomId}`;
+        
+        // 3. Mostra a video
+        roomInfo.innerHTML = `Stanza creata! Copia il link:<br><br><b>${roomLink}</b>`;
+        
+        // Copia automatica
+        await navigator.clipboard.writeText(roomLink);
+        alert("Link copiato! La chat si aprirà ora.");
+        
+        // 4. Salva il link nel browser per evitare l'errore "Link non valido"
+        window.location.hash = `#room=${roomId}`;
+        
+        showChat();
+    } catch (e) {
+        console.error("Errore creazione:", e);
+        alert("Errore: " + e.message);
+    }
 });
 
-// ENTRA NELLA STANZA
+// ENTRA
 btnJoinRoom.addEventListener("click", async () => {
-    const nickname = document.getElementById("nickname").value.trim();
+    const nickname = nicknameInput.value.trim();
     const hash = window.location.hash;
-    const roomId = hash.replace("#room=", "");
-
-    if (!roomId) return alert("Devi usare un link valido per entrare!");
     
-    const roomRef = window.chpriv.ref(window.chpriv.rtdb, `presence/${roomId}`);
-    const snapshot = await window.chpriv.get(roomRef);
-    const data = snapshot.exists() ? snapshot.val() : {};
-    
-    // Limite 2 persone
-    if (Object.keys(data).length >= 2) {
-        alert("ERRORE: Stanza piena o non autorizzata.");
+    if (!hash.includes("#room=")) {
+        alert("Devi prima incollare un link valido nella barra del browser!");
         return;
     }
 
-    // Aggiunge utente 2
-    await window.chpriv.set(window.chpriv.ref(window.chpriv.rtdb, `presence/${roomId}/user2`), {
-        nickname: nickname,
-        joinedAt: Date.now()
-    });
+    const roomId = hash.split("#room=")[1];
+    
+    try {
+        const roomRef = window.chpriv.ref(window.chpriv.rtdb, `presence/${roomId}`);
+        const snapshot = await window.chpriv.get(roomRef);
+        const data = snapshot.exists() ? snapshot.val() : {};
+        
+        if (Object.keys(data).length >= 2) {
+            alert("ERRORE: Stanza piena o non autorizzata.");
+            return;
+        }
 
-    showChat();
+        await window.chpriv.set(window.chpriv.ref(window.chpriv.rtdb, `presence/${roomId}/user2`), {
+            nickname: nickname,
+            joinedAt: Date.now()
+        });
+
+        showChat();
+    } catch (e) {
+        alert("Errore accesso: " + e.message);
+    }
 });
