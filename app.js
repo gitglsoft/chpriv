@@ -104,6 +104,16 @@ if (!window.appInitialized) {
     sendBtn.addEventListener("click", sendMessage);
     messageInput.addEventListener("keypress", (e) => { if (e.key === "Enter") sendMessage(); });
     copyLinkBtn.addEventListener("click", () => { navigator.clipboard.writeText(window.location.href); alert("Link copiato!"); });
+
+    // Aggiungi questa parte nel tuo app.js, vicino agli altri event listener
+    messageInput.addEventListener("keypress", (event) => {
+    // Il tasto Invio ha il codice "Enter"
+    if (event.key === "Enter") {
+        // Richiama la stessa funzione che usi per il bottone verde
+        sendMessage(); 
+    }
+});
+
     
     // Uscita pulita: rimuove l'utente dal database
     exitBtn.addEventListener("click", async () => {
