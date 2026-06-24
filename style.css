@@ -1,94 +1,31 @@
 * { margin: 0; padding: 0; box-sizing: border-box; }
-
-body {
-    font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-    background: #0f172a;
-    color: #f1f5f9;
-    height: 100vh;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-}
-
+body { font-family: 'Segoe UI', sans-serif; background: #0f172a; color: #f1f5f9; height: 100vh; display: flex; justify-content: center; align-items: center; }
 .hidden { display: none !important; }
 
-/* --- LOGIN BOX (Stile moderno) --- */
-#startup {
-    width: 90%;
-    max-width: 450px;
-    padding: 30px;
-    background: #1e293b;
-    border-radius: 20px;
-    box-shadow: 0 10px 25px rgba(0,0,0,0.5);
-    text-align: center;
-}
+#startup { width: 90%; max-width: 450px; padding: 30px; background: #1e293b; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.5); text-align: center; }
+#startup h1 { margin-bottom: 25px; color: #38bdf8; }
+#startup input { width: 100%; padding: 14px; margin-bottom: 12px; border: 1px solid #334155; border-radius: 10px; background: #0f172a; color: white; }
 
-#startup h1 { margin-bottom: 25px; color: #38bdf8; font-weight: 700; }
-
-#startup input {
-    width: 100%;
-    padding: 14px;
-    margin-bottom: 12px;
-    border: 1px solid #334155;
-    border-radius: 10px;
-    background: #0f172a;
-    color: white;
-}
-
-/* --- BOTTONI PROFESSIONALI --- */
 .buttons { display: flex; gap: 10px; margin-top: 10px; }
-button {
-    cursor: pointer;
-    border: none;
-    padding: 12px 20px;
-    border-radius: 10px;
-    font-weight: 600;
-    transition: all 0.2s ease;
-}
+button { cursor: pointer; border: none; padding: 12px 20px; border-radius: 10px; font-weight: 600; transition: 0.2s; }
 button:hover { transform: translateY(-2px); filter: brightness(1.1); }
-
 #btnCreateRoom { background: #059669; color: white; flex: 1; }
 #btnJoinRoom { background: #2563eb; color: white; flex: 1; }
 
-/* --- CHAT CONTAINER --- */
 #chatContainer { width: 100%; height: 100%; display: flex; flex-direction: column; background: #0f172a; }
-
-header {
-    background: #1e293b;
-    padding: 15px 20px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    border-bottom: 1px solid #334155;
-}
-
+header { background: #1e293b; padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #334155; }
 .topButtons { display: flex; gap: 10px; }
-.topButtons button { padding: 8px 15px; font-size: 13px; }
 #copyLinkBtn { background: #334155; color: white; }
 #exitBtn { background: #ef4444; color: white; }
 
-/* --- MESSAGGI --- */
 #messages { flex: 1; padding: 20px; overflow-y: auto; }
 .message { background: #334155; padding: 12px; border-radius: 12px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; }
+.blur-text { filter: blur(5px); background: #ffffff11; padding: 2px 6px; border-radius: 4px; }
 
-/* --- EMOJI BAR (Più spaziosa) --- */
-#emojiBar {
-    padding: 15px;
-    background: #1e293b;
-    display: flex;
-    flex-wrap: wrap;
-    gap: 12px;
-    justify-content: center;
-    border-top: 1px solid #334155;
-}
-#emojiBar span { 
-    cursor: pointer; font-size: 24px; 
-    transition: transform 0.2s;
-    padding: 5px;
-}
+#emojiBar { padding: 15px; background: #1e293b; display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; border-top: 1px solid #334155; }
+#emojiBar span { cursor: pointer; font-size: 24px; transition: 0.2s; padding: 5px; }
 #emojiBar span:hover { transform: scale(1.4); }
 
-/* --- COMPOSER --- */
 #composer { display: flex; padding: 15px; background: #1e293b; gap: 10px; border-top: 1px solid #334155; }
 #messageInput { flex: 1; padding: 12px; border-radius: 10px; border: 1px solid #334155; background: #0f172a; color: white; }
 #sendBtn { background: #059669; color: white; padding: 0 25px; }
