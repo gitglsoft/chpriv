@@ -1,24 +1,7 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-app.js";
-
-import {
-  getAuth,
-  signInAnonymously
-} from "https://www.gstatic.com/firebasejs/12.15.0/firebase-auth.js";
-
-import {
-  getFirestore
-} from "https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore.js";
-
-import {
-  getDatabase,
-  ref,
-  set,
-  get,
-  remove,
-  onValue
-} from "https://www.gstatic.com/firebasejs/12.15.0/firebase-database.js";
-
-console.log("firebase.js caricato");
+import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-auth.js";
+import { getFirestore } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore.js";
+import { getDatabase, ref, set, get, onValue } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-database.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyCg-Q8z5ihQxuDtQpTnaq9zYmUwI5on6lg",
@@ -30,36 +13,15 @@ const firebaseConfig = {
 };
 
 const app = initializeApp(firebaseConfig);
+export const auth = getAuth(app);
+export const db = getFirestore(app);
+export const rtdb = getDatabase(app);
 
-const auth = getAuth(app);
-const db = getFirestore(app);
-const rtdb = getDatabase(
-  app,
-  "https://chpriv-8a3da-default-rtdb.europe-west1.firebasedatabase.app"
-);
-
-try {
-
+// Inizializzazione sicura
+export async function initFirebase() {
   await signInAnonymously(auth);
-
-  console.log("Login anonimo riuscito");
-
-} catch (error) {
-
-  console.error("Errore login anonimo:", error);
-
+  console.log("Firebase inizializzato correttamente");
 }
 
-window.chpriv = {
-  app,
-  auth,
-  db,
-  rtdb,
-  ref,
-  set,
-  get,
-  remove,
-  onValue
-};
-
-console.log("window.chpriv creato");
+// Esponiamo le funzioni per app.js
+window.chpriv = { db, rtdb, ref, set, get, onValue };
