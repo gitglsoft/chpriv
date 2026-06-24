@@ -1,3 +1,7 @@
+/* Assicura che la classe hidden nasconda davvero l'elemento */
+.hidden {
+    display: none !important;
+}
 *{
     margin:0;
     padding:0;
