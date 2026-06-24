@@ -1,3 +1,24 @@
+/* Correzione per sovrapposizioni */
+.hidden { display: none !important; }
+
+/* Assicura che startup sia centrato e sopra tutto il resto */
+#startup {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 100;
+}
+
+#chatContainer {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
 * { margin: 0; padding: 0; box-sizing: border-box; }
 
 body {
