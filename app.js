@@ -1,7 +1,7 @@
 import { collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore.js";
 import { initFirebase } from "./firebase.js";
 
-// Inizializza subito
+// 1. Avvio iniziale
 await initFirebase();
 
 const startupDiv = document.getElementById("startup");
@@ -11,101 +11,72 @@ const nicknameInput = document.getElementById("nickname");
 const btnCreateRoom = document.getElementById("btnCreateRoom");
 const btnJoinRoom = document.getElementById("btnJoinRoom");
 
+// 2. Funzione per monitorare chi entra
+function watchPresence(roomId) {
+    const presenceRef = window.chpriv.ref(window.chpriv.rtdb, `presence/${roomId}`);
+    window.chpriv.onValue(presenceRef, (snapshot) => {
+        const data = snapshot.val();
+        const otherInfo = document.getElementById("otherInfo");
+        if (!data) return;
+        
+        const userCount = Object.keys(data).length;
+        if (userCount > 1) {
+            otherInfo.textContent = "Altro utente online (Chat Privata)";
+            otherInfo.style.color = "green";
+        } else {
+            otherInfo.textContent = "In attesa dell'altro utente...";
+            otherInfo.style.color = "orange";
+        }
+    });
+}
+
+// 3. Funzione transizione grafica
 function showChat() {
     startupDiv.classList.add("hidden");
     chatContainer.classList.remove("hidden");
 }
 
-// CREA CHAT
+// 4. Bottone CREA
 btnCreateRoom.addEventListener("click", async () => {
     const nickname = nicknameInput.value.trim();
     if (!nickname) return alert("Inserisci un nickname!");
 
-    try {
-        const roomId = crypto.randomUUID();
-        console.log("Creazione stanza:", roomId);
+    const roomId = crypto.randomUUID();
+    
+    // Scrive su RTDB
+    await window.chpriv.set(window.chpriv.ref(window.chpriv.rtdb, `presence/${roomId}/user1`), {
+        nickname: nickname,
+        joinedAt: Date.now()
+    });
 
-        // 1. Salva in RTDB
-        await window.chpriv.set(window.chpriv.ref(window.chpriv.rtdb, `presence/${roomId}/user1`), {
-            nickname: nickname,
-            joinedAt: Date.now()
-        });
-
-        // 2. Genera Link
-        const roomLink = `${window.location.origin}${window.location.pathname}#room=${roomId}`;
-        
-        // 3. Mostra a video
-        roomInfo.innerHTML = `Stanza creata! Copia il link:<br><br><b>${roomLink}</b>`;
-        
-        // Copia automatica
-        await navigator.clipboard.writeText(roomLink);
-        alert("Link copiato! La chat si aprirà ora.");
-        
-        // 4. Salva il link nel browser per evitare l'errore "Link non valido"
-        window.location.hash = `#room=${roomId}`;
-        
-        showChat();
-    } catch (e) {
-        console.error("Errore creazione:", e);
-        alert("Errore: " + e.message);
-    }
+    const roomLink = `${window.location.origin}${window.location.pathname}#room=${roomId}`;
+    roomInfo.innerHTML = `Stanza creata! Link:<br><b>${roomLink}</b>`;
+    
+    await navigator.clipboard.writeText(roomLink);
+    window.location.hash = `#room=${roomId}`;
+    
+    watchPresence(roomId); // Avvia il monitoraggio
+    showChat();
 });
 
-// ENTRA
+// 5. Bottone ENTRA
 btnJoinRoom.addEventListener("click", async () => {
     const nickname = nicknameInput.value.trim();
     const hash = window.location.hash;
-    
-    if (!hash.includes("#room=")) {
-        alert("Devi prima incollare un link valido nella barra del browser!");
-        return;
-    }
+    if (!hash.includes("#room=")) return alert("Devi incollare un link valido!");
 
     const roomId = hash.split("#room=")[1];
+    const roomRef = window.chpriv.ref(window.chpriv.rtdb, `presence/${roomId}`);
+    const snapshot = await window.chpriv.get(roomRef);
+    const data = snapshot.exists() ? snapshot.val() : {};
     
-    try {
-        const roomRef = window.chpriv.ref(window.chpriv.rtdb, `presence/${roomId}`);
-        const snapshot = await window.chpriv.get(roomRef);
-        const data = snapshot.exists() ? snapshot.val() : {};
-        
-        if (Object.keys(data).length >= 2) {
-            alert("ERRORE: Stanza piena o non autorizzata.");
-            return;
-        }
+    if (Object.keys(data).length >= 2) return alert("ERRORE: Stanza piena.");
 
-        await window.chpriv.set(window.chpriv.ref(window.chpriv.rtdb, `presence/${roomId}/user2`), {
-            nickname: nickname,
-            joinedAt: Date.now()
-        });
-
-        showChat();
-    } catch (e) {
-        alert("Errore accesso: " + e.message);
-    }
-});
-// MONITOR PRESENZA (Aggiungi questo alla fine di app.js)
-function watchPresence(roomId, myNickname) {
-    const presenceRef = window.chpriv.ref(window.chpriv.rtdb, `presence/${roomId}`);
-    
-    window.chpriv.onValue(presenceRef, (snapshot) => {
-        const data = snapshot.val();
-        if (!data) return;
-
-        const users = Object.keys(data); // Elenco degli utenti (user1, user2)
-        const otherUser = users.find(u => u !== "myNicknamePlaceholder"); // Logica base
-
-        // Aggiorna la UI
-        const otherInfo = document.getElementById("otherInfo");
-        const count = users.length;
-        
-        if (count > 1) {
-            otherInfo.textContent = "Altro utente online";
-        } else {
-            otherInfo.textContent = "In attesa dell'altro utente...";
-        }
+    await window.chpriv.set(window.chpriv.ref(window.chpriv.rtdb, `presence/${roomId}/user2`), {
+        nickname: nickname,
+        joinedAt: Date.now()
     });
-}
 
-// IMPORTANTE: Richiama questa funzione dopo aver creato o entrato nella stanza
-// Modifica la parte finale del tuo listener 'btnCreateRoom' e 'btnJoinRoom' così:
-// watchPresence(roomId, nickname);
+    watchPresence(roomId); // Avvia il monitoraggio
+    showChat();
+});
