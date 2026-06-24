@@ -83,3 +83,29 @@ btnJoinRoom.addEventListener("click", async () => {
         alert("Errore accesso: " + e.message);
     }
 });
+// MONITOR PRESENZA (Aggiungi questo alla fine di app.js)
+function watchPresence(roomId, myNickname) {
+    const presenceRef = window.chpriv.ref(window.chpriv.rtdb, `presence/${roomId}`);
+    
+    window.chpriv.onValue(presenceRef, (snapshot) => {
+        const data = snapshot.val();
+        if (!data) return;
+
+        const users = Object.keys(data); // Elenco degli utenti (user1, user2)
+        const otherUser = users.find(u => u !== "myNicknamePlaceholder"); // Logica base
+
+        // Aggiorna la UI
+        const otherInfo = document.getElementById("otherInfo");
+        const count = users.length;
+        
+        if (count > 1) {
+            otherInfo.textContent = "Altro utente online";
+        } else {
+            otherInfo.textContent = "In attesa dell'altro utente...";
+        }
+    });
+}
+
+// IMPORTANTE: Richiama questa funzione dopo aver creato o entrato nella stanza
+// Modifica la parte finale del tuo listener 'btnCreateRoom' e 'btnJoinRoom' così:
+// watchPresence(roomId, nickname);
