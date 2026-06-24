@@ -30,3 +30,33 @@ header { background: #1e293b; padding: 15px 20px; display: flex; justify-content
 #composer { display: flex; padding: 15px; background: #1e293b; gap: 10px; border-top: 1px solid #334155; }
 #messageInput { flex: 1; padding: 12px; border-radius: 10px; border: 1px solid #334155; background: #0f172a; color: white; }
 #sendBtn { background: #059669; color: white; padding: 0 25px; }
+
+/* ... mantieni tutto il CSS precedente e aggiungi questo in fondo ... */
+
+.main-logo {
+    width: 100%;
+    max-width: 300px;
+    margin-bottom: 20px;
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.header-logo {
+    height: 30px; /* Altezza adattata all'header */
+    width: auto;
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+}
+
+/* Modifica header per permettere il centraggio del logo */
+header { 
+    position: relative; /* Necessario per centrare il logo */
+    background: #1e293b; 
+    padding: 15px 20px; 
+    display: flex; 
+    justify-content: space-between; 
+    align-items: center; 
+    border-bottom: 1px solid #334155; 
+}
