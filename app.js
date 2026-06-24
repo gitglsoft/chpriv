@@ -101,31 +101,33 @@ if (!window.appInitialized) {
         showChat(roomId);
     });
 
+    // Eventi di interfaccia
     sendBtn.addEventListener("click", sendMessage);
-    messageInput.addEventListener("keypress", (e) => { if (e.key === "Enter") sendMessage(); });
-    copyLinkBtn.addEventListener("click", () => { navigator.clipboard.writeText(window.location.href); alert("Link copiato!"); });
+    
+    // Gestione tasto Invio (UNICA volta)
+    messageInput.addEventListener("keypress", (e) => { 
+        if (e.key === "Enter") sendMessage(); 
+    });
 
-    // Aggiungi questa parte nel tuo app.js, vicino agli altri event listener
-    messageInput.addEventListener("keypress", (event) => {
-    // Il tasto Invio ha il codice "Enter"
-    if (event.key === "Enter") {
-        // Richiama la stessa funzione che usi per il bottone verde
-        sendMessage(); 
-    }
-});
-
+    copyLinkBtn.addEventListener("click", () => { 
+        navigator.clipboard.writeText(window.location.href); 
+        alert("Link copiato!"); 
+    });
     
     // Uscita pulita: rimuove l'utente dal database
     exitBtn.addEventListener("click", async () => {
         const roomId = window.location.hash.split("#room=")[1];
-        const myNickname = nicknameInput.value.trim();
+        if (!roomId) return window.location.reload();
+        
         const snapshot = await window.chpriv.get(window.chpriv.ref(window.chpriv.rtdb, `presence/${roomId}`));
         const data = snapshot.val();
         
-        // Trova e rimuovi l'utente corrente
-        for (let role in data) {
-            if (data[role].nickname === myNickname) {
-                await window.chpriv.set(window.chpriv.ref(window.chpriv.rtdb, `presence/${roomId}/${role}`), null);
+        if (data) {
+            const myNickname = nicknameInput.value.trim();
+            for (let role in data) {
+                if (data[role].nickname === myNickname) {
+                    await window.chpriv.set(window.chpriv.ref(window.chpriv.rtdb, `presence/${roomId}/${role}`), null);
+                }
             }
         }
         window.location.hash = "";
