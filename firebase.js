@@ -14,8 +14,8 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 export const auth = getAuth(app);
-export const db = getFirestore(app);
 export const rtdb = getDatabase(app);
+export const rtdb = getDatabase(app, "https://chpriv-8a3da-default-rtdb.europe-west1.firebasedatabase.app");
 
 // Inizializzazione sicura
 export async function initFirebase() {
