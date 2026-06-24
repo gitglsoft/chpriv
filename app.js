@@ -42,16 +42,44 @@ function startMessageListener(roomId) {
             if (change.type === "added") {
                 const data = change.doc.data();
                 const msgEl = document.createElement("div");
-                msgEl.textContent = `${data.sender}: ${data.text}`;
                 msgEl.className = "message";
+                
+                // Messaggio blurato inizialmente
+                msgEl.innerHTML = `<span>${data.sender}: </span><span class="blur-text" style="filter: blur(5px);">[Messaggio Criptato]</span>`;
+                
+                const readBtn = document.createElement("button");
+                readBtn.textContent = "Leggi";
+                readBtn.onclick = () => {
+                    msgEl.querySelector(".blur-text").textContent = data.text;
+                    msgEl.querySelector(".blur-text").style.filter = "none";
+                    readBtn.style.display = "none";
+                    
+                    // Timer autodistruzione parte DOPO la lettura
+                    setTimeout(async () => {
+                        msgEl.remove();
+                        try { await deleteDoc(doc(window.chpriv.db, "messages", roomId, "list", change.doc.id)); } catch (e) {}
+                    }, 3000);
+                };
+                
+                msgEl.appendChild(readBtn);
                 messagesDiv.appendChild(msgEl);
-                setTimeout(async () => {
-                    msgEl.remove();
-                    try { await deleteDoc(doc(window.chpriv.db, "messages", roomId, "list", change.doc.id)); } catch (e) {}
-                }, 3000);
             }
         });
     });
+}
+
+// Funzione di invio unificata
+async function sendMessage() {
+    const text = messageInput.value.trim();
+    const roomId = window.location.hash.split("#room=")[1];
+    if (text && roomId) {
+        await addDoc(collection(window.chpriv.db, "messages", roomId, "list"), {
+            text,
+            sender: nicknameInput.value,
+            createdAt: serverTimestamp()
+        });
+        messageInput.value = "";
+    }
 }
 
 btnCreateRoom.addEventListener("click", async () => {
@@ -70,29 +98,19 @@ btnJoinRoom.addEventListener("click", async () => {
     const hash = window.location.hash;
     if (!hash.includes("#room=")) return alert("Link non valido!");
     const roomId = hash.split("#room=")[1];
-    
     const snapshot = await window.chpriv.get(window.chpriv.ref(window.chpriv.rtdb, `presence/${roomId}`));
-    const data = snapshot.exists() ? snapshot.val() : {};
-    
-    if (Object.keys(data).length >= 2) return alert("ERRORE: La stanza è piena.");
-    
+    if (Object.keys(snapshot.exists() ? snapshot.val() : {}).length >= 2) return alert("ERRORE: Stanza piena.");
     await window.chpriv.set(window.chpriv.ref(window.chpriv.rtdb, `presence/${roomId}/user2`), { nickname });
     watchPresence(roomId);
     startMessageListener(roomId);
     showChat(roomId);
 });
 
-sendBtn.addEventListener("click", async () => {
-    const text = messageInput.value.trim();
-    const roomId = window.location.hash.split("#room=")[1];
-    if (text && roomId) {
-        await addDoc(collection(window.chpriv.db, "messages", roomId, "list"), {
-            text,
-            sender: nicknameInput.value,
-            createdAt: serverTimestamp()
-        });
-        messageInput.value = "";
-    }
+sendBtn.addEventListener("click", sendMessage);
+
+// Supporto tasto INVIO
+messageInput.addEventListener("keypress", (e) => {
+    if (e.key === "Enter") sendMessage();
 });
 
 copyLinkBtn.addEventListener("click", () => {
