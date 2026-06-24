@@ -5,26 +5,6 @@ await initFirebase();
 
 const startupDiv = document.getElementById("startup");
 const chatContainer = document.getElementById("chatContainer");
-
-// FUNZIONE DI CONTROLLO IMMEDIATO
-window.addEventListener("DOMContentLoaded", () => {
-    const hash = window.location.hash;
-    if (hash.includes("#room=")) {
-        // Se c'è un link, nascondi subito il login
-        startupDiv.classList.add("hidden");
-        chatContainer.classList.remove("hidden");
-    } else {
-        // Altrimenti mostra il login
-        startupDiv.classList.remove("hidden");
-        chatContainer.classList.add("hidden");
-    }
-});
-
-await initFirebase();
-
-const startupDiv = document.getElementById("startup");
-const chatContainer = document.getElementById("chatContainer");
-const roomInfo = document.getElementById("roomInfo");
 const nicknameInput = document.getElementById("nickname");
 const btnCreateRoom = document.getElementById("btnCreateRoom");
 const btnJoinRoom = document.getElementById("btnJoinRoom");
@@ -62,24 +42,18 @@ function startMessageListener(roomId) {
                 const data = change.doc.data();
                 const msgEl = document.createElement("div");
                 msgEl.className = "message";
-                
-                // Messaggio blurato inizialmente
                 msgEl.innerHTML = `<span>${data.sender}: </span><span class="blur-text" style="filter: blur(5px);">[Messaggio Criptato]</span>`;
-                
                 const readBtn = document.createElement("button");
                 readBtn.textContent = "Leggi";
                 readBtn.onclick = () => {
                     msgEl.querySelector(".blur-text").textContent = data.text;
                     msgEl.querySelector(".blur-text").style.filter = "none";
                     readBtn.style.display = "none";
-                    
-                    // Timer autodistruzione parte DOPO la lettura
                     setTimeout(async () => {
                         msgEl.remove();
                         try { await deleteDoc(doc(window.chpriv.db, "messages", roomId, "list", change.doc.id)); } catch (e) {}
                     }, 3000);
                 };
-                
                 msgEl.appendChild(readBtn);
                 messagesDiv.appendChild(msgEl);
             }
@@ -87,16 +61,11 @@ function startMessageListener(roomId) {
     });
 }
 
-// Funzione di invio unificata
 async function sendMessage() {
     const text = messageInput.value.trim();
     const roomId = window.location.hash.split("#room=")[1];
     if (text && roomId) {
-        await addDoc(collection(window.chpriv.db, "messages", roomId, "list"), {
-            text,
-            sender: nicknameInput.value,
-            createdAt: serverTimestamp()
-        });
+        await addDoc(collection(window.chpriv.db, "messages", roomId, "list"), { text, sender: nicknameInput.value, createdAt: serverTimestamp() });
         messageInput.value = "";
     }
 }
@@ -108,7 +77,6 @@ btnCreateRoom.addEventListener("click", async () => {
     await window.chpriv.set(window.chpriv.ref(window.chpriv.rtdb, `presence/${roomId}/user1`), { nickname });
     watchPresence(roomId);
     startMessageListener(roomId);
-    roomInfo.innerHTML = `Link: ${window.location.origin}${window.location.pathname}#room=${roomId}`;
     showChat(roomId);
 });
 
@@ -118,7 +86,8 @@ btnJoinRoom.addEventListener("click", async () => {
     if (!hash.includes("#room=")) return alert("Link non valido!");
     const roomId = hash.split("#room=")[1];
     const snapshot = await window.chpriv.get(window.chpriv.ref(window.chpriv.rtdb, `presence/${roomId}`));
-    if (Object.keys(snapshot.exists() ? snapshot.val() : {}).length >= 2) return alert("ERRORE: Stanza piena.");
+    const data = snapshot.exists() ? snapshot.val() : {};
+    if (Object.keys(data).length >= 2) return alert("ERRORE: Stanza piena.");
     await window.chpriv.set(window.chpriv.ref(window.chpriv.rtdb, `presence/${roomId}/user2`), { nickname });
     watchPresence(roomId);
     startMessageListener(roomId);
@@ -126,18 +95,6 @@ btnJoinRoom.addEventListener("click", async () => {
 });
 
 sendBtn.addEventListener("click", sendMessage);
-
-// Supporto tasto INVIO
-messageInput.addEventListener("keypress", (e) => {
-    if (e.key === "Enter") sendMessage();
-});
-
-copyLinkBtn.addEventListener("click", () => {
-    navigator.clipboard.writeText(window.location.href);
-    alert("Link copiato!");
-});
-
-exitBtn.addEventListener("click", () => {
-    window.location.hash = "";
-    window.location.reload();
-});
+messageInput.addEventListener("keypress", (e) => { if (e.key === "Enter") sendMessage(); });
+copyLinkBtn.addEventListener("click", () => { navigator.clipboard.writeText(window.location.href); alert("Link copiato!"); });
+exitBtn.addEventListener("click", () => { window.location.hash = ""; window.location.reload(); });
