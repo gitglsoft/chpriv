@@ -1,5 +1,5 @@
 * { margin: 0; padding: 0; box-sizing: border-box; }
-body { font-family: 'Segoe UI', sans-serif; background: #0f172a; color: #f1f5f9; height: 100vh; display: flex; justify-content: center; align-items: center; }
+body { font-family: 'Segoe UI', Arial, sans-serif; background: #0f172a; color: #f1f5f9; height: 100vh; display: flex; justify-content: center; align-items: center; }
 .hidden { display: none !important; }
 
 #startup { width: 90%; max-width: 450px; padding: 30px; background: #1e293b; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.5); text-align: center; }
@@ -16,6 +16,7 @@ button:hover { transform: translateY(-2px); filter: brightness(1.1); }
 header { background: #1e293b; padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #334155; }
 .topButtons { display: flex; gap: 10px; }
 #copyLinkBtn { background: #334155; color: white; }
+#clearBtn { background: #d97706; color: white; }
 #exitBtn { background: #ef4444; color: white; }
 
 #messages { flex: 1; padding: 20px; overflow-y: auto; }
