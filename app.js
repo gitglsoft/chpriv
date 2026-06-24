@@ -44,3 +44,17 @@ window.initChat = (roomId, myNickname) => {
     });
   });
 };
+// COLLEGAMENTO PULSANTE INVIO
+const sendBtn = document.getElementById("sendBtn");
+const messageInput = document.getElementById("messageInput");
+
+sendBtn.addEventListener("click", async () => {
+  const text = messageInput.value.trim();
+  const roomId = getRoomFromUrl(); // Assicurati di avere questa funzione definita
+  const nickname = document.getElementById("nickname").value.trim();
+
+  if (text && roomId) {
+    await sendMessage(roomId, nickname, text);
+    messageInput.value = ""; // Svuota l'input
+  }
+});
