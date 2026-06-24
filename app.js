@@ -16,21 +16,46 @@ if (!window.appInitialized) {
     function showChat(roomId) { startupDiv.classList.add("hidden"); chatContainer.classList.remove("hidden"); window.location.hash = `#room=${roomId}`; }
 
     async function startMessageListener(roomId) {
-        const presenceSnap = await window.chpriv.get(window.chpriv.ref(window.chpriv.rtdb, `presence/${roomId}`));
-        const userCount = presenceSnap.exists() ? Object.keys(presenceSnap.val()).length : 0;
+        // Monitoriamo la presenza per sapere in quanti siamo
+        window.chpriv.onValue(window.chpriv.ref(window.chpriv.rtdb, `presence/${roomId}`), (snapshot) => {
+            const presenceData = snapshot.val() || {};
+            const userCount = Object.keys(presenceData).length;
+            
+            // Definiamo una variabile globale per sapere se siamo in 2
+            window.isChatPrivate = (userCount < 2); 
+        });
 
         onSnapshot(query(collection(window.chpriv.db, "messages", roomId, "list"), orderBy("createdAt")), (snapshot) => {
             snapshot.docChanges().forEach((change) => {
                 if (change.type === "added") {
                     const data = change.doc.data(), msgEl = document.createElement("div"); msgEl.className = "message";
-                    if (userCount === 2) {
-                        msgEl.innerHTML = `<span>${data.sender}: </span><span>${data.text}</span>`;
+                    const isMyMessage = (data.sender === nicknameInput.value.trim());
+
+                    // LOGICA: Se siamo in 2, visibilità totale. Se siamo soli, protezione.
+                    if (!window.isChatPrivate) {
+                        msgEl.innerHTML = `<span><b>${data.sender}:</b> ${data.text}</span>`;
                         messagesDiv.appendChild(msgEl);
                     } else {
-                        msgEl.innerHTML = `<span>${data.sender}: </span><span class="blur-text">[Messaggio Criptato]</span>`;
-                        const readBtn = document.createElement("button"); readBtn.textContent = "Leggi";
-                        readBtn.onclick = () => { msgEl.querySelector(".blur-text").textContent = data.text; msgEl.querySelector(".blur-text").style.filter = "none"; readBtn.style.display = "none"; setTimeout(async () => { msgEl.remove(); try { await deleteDoc(doc(window.chpriv.db, "messages", roomId, "list", change.doc.id)); } catch (e) {} }, 3000); };
-                        msgEl.appendChild(readBtn); messagesDiv.appendChild(msgEl);
+                        // Se sono io che ho scritto, leggo il mio messaggio, se è l'altro... lo blero
+                        if (isMyMessage) {
+                            msgEl.innerHTML = `<span><b>Tu:</b> ${data.text}</span>`;
+                            messagesDiv.appendChild(msgEl);
+                        } else {
+                            msgEl.innerHTML = `<span><b>${data.sender}:</b> </span><span class="blur-text">[Messaggio Criptato]</span>`;
+                            const readBtn = document.createElement("button"); readBtn.textContent = "Leggi";
+                            readBtn.style.marginLeft = "10px";
+                            readBtn.onclick = () => {
+                                msgEl.querySelector(".blur-text").textContent = data.text;
+                                msgEl.querySelector(".blur-text").style.filter = "none";
+                                readBtn.style.display = "none";
+                                setTimeout(async () => {
+                                    msgEl.remove();
+                                    try { await deleteDoc(doc(window.chpriv.db, "messages", roomId, "list", change.doc.id)); } catch (e) {}
+                                }, 3000);
+                            };
+                            msgEl.appendChild(readBtn);
+                            messagesDiv.appendChild(msgEl);
+                        }
                     }
                 }
             });
@@ -39,7 +64,7 @@ if (!window.appInitialized) {
 
     async function sendMessage() {
         const text = messageInput.value.trim(), roomId = getRoomId();
-        if (text && roomId) { await addDoc(collection(window.chpriv.db, "messages", roomId, "list"), { text, sender: nicknameInput.value, createdAt: serverTimestamp() }); messageInput.value = ""; }
+        if (text && roomId) { await addDoc(collection(window.chpriv.db, "messages", roomId, "list"), { text, sender: nicknameInput.value.trim(), createdAt: serverTimestamp() }); messageInput.value = ""; }
     }
 
     btnCreateRoom.addEventListener("click", async () => {
