@@ -105,6 +105,7 @@ createBtn.addEventListener("click", async () => {
     });
 
     meInfo.textContent = `${nickname} (online)`;
+    watchPresence(roomId, nickname);
     alert("Stanza creata correttamente");
   } catch (err) {
     console.error(err);
