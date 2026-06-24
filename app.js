@@ -5,44 +5,64 @@ if (!window.appInitialized) {
     window.appInitialized = true;
     await initFirebase();
 
-    const startupDiv = document.getElementById("startup"), chatContainer = document.getElementById("chatContainer"), nicknameInput = document.getElementById("nickname"), btnCreateRoom = document.getElementById("btnCreateRoom"), btnJoinRoom = document.getElementById("btnJoinRoom"), messageInput = document.getElementById("messageInput"), sendBtn = document.getElementById("sendBtn"), messagesDiv = document.getElementById("messages"), copyLinkBtn = document.getElementById("copyLinkBtn"), exitBtn = document.getElementById("exitBtn"), clearBtn = document.getElementById("clearBtn");
+    const startupDiv = document.getElementById("startup"), 
+          chatContainer = document.getElementById("chatContainer"), 
+          nicknameInput = document.getElementById("nickname"), 
+          btnCreateRoom = document.getElementById("btnCreateRoom"), 
+          btnJoinRoom = document.getElementById("btnJoinRoom"), 
+          messageInput = document.getElementById("messageInput"), 
+          sendBtn = document.getElementById("sendBtn"), 
+          messagesDiv = document.getElementById("messages"), 
+          copyLinkBtn = document.getElementById("copyLinkBtn"), 
+          exitBtn = document.getElementById("exitBtn"), 
+          clearBtn = document.getElementById("clearBtn");
+
+    // Genera ID 3 numeri + 1 lettera
+    function generateCustomId() {
+        const numbers = Math.floor(100 + Math.random() * 900);
+        const letter = String.fromCharCode(97 + Math.floor(Math.random() * 26));
+        return `${numbers}${letter}`;
+    }
 
     function getRoomId() {
         let roomId = window.location.hash.split("#room=")[1];
-        if (!roomId) { roomId = localStorage.getItem("myRoomId") || crypto.randomUUID(); localStorage.setItem("myRoomId", roomId); }
+        if (!roomId) {
+            roomId = localStorage.getItem("myRoomId") || generateCustomId();
+            localStorage.setItem("myRoomId", roomId);
+        }
         return roomId;
     }
 
-    function showChat(roomId) { startupDiv.classList.add("hidden"); chatContainer.classList.remove("hidden"); window.location.hash = `#room=${roomId}`; }
+    function showChat(roomId) { 
+        startupDiv.classList.add("hidden"); 
+        chatContainer.classList.remove("hidden"); 
+        window.location.hash = `#room=${roomId}`; 
+    }
 
     async function startMessageListener(roomId) {
-        // Monitoriamo la presenza per sapere in quanti siamo
         window.chpriv.onValue(window.chpriv.ref(window.chpriv.rtdb, `presence/${roomId}`), (snapshot) => {
             const presenceData = snapshot.val() || {};
-            const userCount = Object.keys(presenceData).length;
-            
-            // Definiamo una variabile globale per sapere se siamo in 2
-            window.isChatPrivate = (userCount < 2); 
+            window.isChatPrivate = (Object.keys(presenceData).length < 2); 
         });
 
         onSnapshot(query(collection(window.chpriv.db, "messages", roomId, "list"), orderBy("createdAt")), (snapshot) => {
             snapshot.docChanges().forEach((change) => {
                 if (change.type === "added") {
-                    const data = change.doc.data(), msgEl = document.createElement("div"); msgEl.className = "message";
+                    const data = change.doc.data(), msgEl = document.createElement("div"); 
+                    msgEl.className = "message";
                     const isMyMessage = (data.sender === nicknameInput.value.trim());
 
-                    // LOGICA: Se siamo in 2, visibilità totale. Se siamo soli, protezione.
                     if (!window.isChatPrivate) {
                         msgEl.innerHTML = `<span><b>${data.sender}:</b> ${data.text}</span>`;
                         messagesDiv.appendChild(msgEl);
                     } else {
-                        // Se sono io che ho scritto, leggo il mio messaggio, se è l'altro... lo blero
                         if (isMyMessage) {
                             msgEl.innerHTML = `<span><b>Tu:</b> ${data.text}</span>`;
                             messagesDiv.appendChild(msgEl);
                         } else {
                             msgEl.innerHTML = `<span><b>${data.sender}:</b> </span><span class="blur-text">[Messaggio Criptato]</span>`;
-                            const readBtn = document.createElement("button"); readBtn.textContent = "Leggi";
+                            const readBtn = document.createElement("button"); 
+                            readBtn.textContent = "Leggi";
                             readBtn.style.marginLeft = "10px";
                             readBtn.onclick = () => {
                                 msgEl.querySelector(".blur-text").textContent = data.text;
@@ -64,12 +84,22 @@ if (!window.appInitialized) {
 
     async function sendMessage() {
         const text = messageInput.value.trim(), roomId = getRoomId();
-        if (text && roomId) { await addDoc(collection(window.chpriv.db, "messages", roomId, "list"), { text, sender: nicknameInput.value.trim(), createdAt: serverTimestamp() }); messageInput.value = ""; }
+        if (text && roomId) { 
+            await addDoc(collection(window.chpriv.db, "messages", roomId, "list"), { 
+                text, sender: nicknameInput.value.trim(), createdAt: serverTimestamp() 
+            }); 
+            messageInput.value = ""; 
+        }
     }
 
     btnCreateRoom.addEventListener("click", async () => {
-        const nickname = nicknameInput.value.trim(); if (!nickname) return alert("Inserisci nickname!");
-        const roomId = getRoomId(); await window.chpriv.set(window.chpriv.ref(window.chpriv.rtdb, `presence/${roomId}/user1`), { nickname }); startMessageListener(roomId); showChat(roomId);
+        const nickname = nicknameInput.value.trim(); 
+        if (!nickname) return alert("Inserisci nickname!");
+        const newRoomId = generateCustomId();
+        localStorage.setItem("myRoomId", newRoomId);
+        await window.chpriv.set(window.chpriv.ref(window.chpriv.rtdb, `presence/${newRoomId}/user1`), { nickname }); 
+        startMessageListener(newRoomId); 
+        showChat(newRoomId);
     });
 
     btnJoinRoom.addEventListener("click", async () => {
@@ -78,7 +108,9 @@ if (!window.appInitialized) {
         const data = snapshot.exists() ? snapshot.val() : {};
         let role = !data.user1 ? "user1" : !data.user2 ? "user2" : null;
         if (!role) return alert("ERRORE: Stanza piena.");
-        await window.chpriv.set(window.chpriv.ref(window.chpriv.rtdb, `presence/${roomId}/${role}`), { nickname }); startMessageListener(roomId); showChat(roomId);
+        await window.chpriv.set(window.chpriv.ref(window.chpriv.rtdb, `presence/${roomId}/${role}`), { nickname }); 
+        startMessageListener(roomId); 
+        showChat(roomId);
     });
 
     clearBtn.addEventListener("click", async () => {
