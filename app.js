@@ -11,17 +11,21 @@ const nicknameInput = document.getElementById("nickname");
 const btnCreateRoom = document.getElementById("btnCreateRoom");
 const btnJoinRoom = document.getElementById("btnJoinRoom");
 
-// 2. Funzione per monitorare chi entra
+// 2. Funzione per monitorare chi entra e mostrare il nome
 function watchPresence(roomId) {
     const presenceRef = window.chpriv.ref(window.chpriv.rtdb, `presence/${roomId}`);
     window.chpriv.onValue(presenceRef, (snapshot) => {
         const data = snapshot.val();
         const otherInfo = document.getElementById("otherInfo");
+        const myNickname = nicknameInput.value.trim();
+        
         if (!data) return;
         
-        const userCount = Object.keys(data).length;
-        if (userCount > 1) {
-            otherInfo.textContent = "Altro utente online (Chat Privata)";
+        const users = Object.values(data);
+        const otherUser = users.find(u => u.nickname !== myNickname);
+        
+        if (otherUser) {
+            otherInfo.textContent = otherUser.nickname + " è online";
             otherInfo.style.color = "green";
         } else {
             otherInfo.textContent = "In attesa dell'altro utente...";
@@ -40,10 +44,10 @@ function showChat() {
 btnCreateRoom.addEventListener("click", async () => {
     const nickname = nicknameInput.value.trim();
     if (!nickname) return alert("Inserisci un nickname!");
+    btnCreateRoom.disabled = true;
 
     const roomId = crypto.randomUUID();
     
-    // Scrive su RTDB
     await window.chpriv.set(window.chpriv.ref(window.chpriv.rtdb, `presence/${roomId}/user1`), {
         nickname: nickname,
         joinedAt: Date.now()
@@ -55,7 +59,7 @@ btnCreateRoom.addEventListener("click", async () => {
     await navigator.clipboard.writeText(roomLink);
     window.location.hash = `#room=${roomId}`;
     
-    watchPresence(roomId); // Avvia il monitoraggio
+    watchPresence(roomId);
     showChat();
 });
 
@@ -77,6 +81,6 @@ btnJoinRoom.addEventListener("click", async () => {
         joinedAt: Date.now()
     });
 
-    watchPresence(roomId); // Avvia il monitoraggio
+    watchPresence(roomId);
     showChat();
 });
