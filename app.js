@@ -41,7 +41,6 @@ function startMessageListener(roomId) {
                 msgEl.textContent = `${data.sender}: ${data.text}`;
                 msgEl.className = "message";
                 messagesDiv.appendChild(msgEl);
-                
                 setTimeout(async () => {
                     msgEl.remove();
                     try { await deleteDoc(doc(window.chpriv.db, "messages", roomId, "list", change.doc.id)); } catch (e) {}
@@ -55,7 +54,6 @@ btnCreateRoom.addEventListener("click", async () => {
     const nickname = nicknameInput.value.trim();
     if (!nickname) return alert("Inserisci nickname!");
     const roomId = crypto.randomUUID();
-    
     await window.chpriv.set(window.chpriv.ref(window.chpriv.rtdb, `presence/${roomId}/user1`), { nickname });
     window.location.hash = `#room=${roomId}`;
     watchPresence(roomId);
@@ -65,21 +63,14 @@ btnCreateRoom.addEventListener("click", async () => {
 
 btnJoinRoom.addEventListener("click", async () => {
     const nickname = nicknameInput.value.trim();
-    const roomId = window.location.hash.split("#room=")[1];
-    if (!roomId) return alert("Link non valido!");
-
+    const hash = window.location.hash;
+    if (!hash.includes("#room=")) return alert("Link non valido!");
+    const roomId = hash.split("#room=")[1];
     const roomRef = window.chpriv.ref(window.chpriv.rtdb, `presence/${roomId}`);
     const snapshot = await window.chpriv.get(roomRef);
     const data = snapshot.exists() ? snapshot.val() : {};
-    
-    // CONTROLLO RIGOROSO: Massimo 2 utenti
-    if (Object.keys(data).length >= 2) {
-        alert("ERRORE: La stanza è piena o riservata ad altri.");
-        return; 
-    }
-
+    if (Object.keys(data).length >= 2) return alert("ERRORE: La stanza è piena.");
     await window.chpriv.set(window.chpriv.ref(window.chpriv.rtdb, `presence/${roomId}/user2`), { nickname });
-    
     watchPresence(roomId);
     startMessageListener(roomId);
     showChat();
