@@ -5,6 +5,25 @@ await initFirebase();
 
 const startupDiv = document.getElementById("startup");
 const chatContainer = document.getElementById("chatContainer");
+
+// FUNZIONE DI CONTROLLO IMMEDIATO
+window.addEventListener("DOMContentLoaded", () => {
+    const hash = window.location.hash;
+    if (hash.includes("#room=")) {
+        // Se c'è un link, nascondi subito il login
+        startupDiv.classList.add("hidden");
+        chatContainer.classList.remove("hidden");
+    } else {
+        // Altrimenti mostra il login
+        startupDiv.classList.remove("hidden");
+        chatContainer.classList.add("hidden");
+    }
+});
+
+await initFirebase();
+
+const startupDiv = document.getElementById("startup");
+const chatContainer = document.getElementById("chatContainer");
 const roomInfo = document.getElementById("roomInfo");
 const nicknameInput = document.getElementById("nickname");
 const btnCreateRoom = document.getElementById("btnCreateRoom");
