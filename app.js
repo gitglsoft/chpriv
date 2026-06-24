@@ -12,6 +12,13 @@ const messageInput = document.getElementById("messageInput");
 const sendBtn = document.getElementById("sendBtn");
 const messagesDiv = document.getElementById("messages");
 
+// Inizializzazione automatica se il link contiene già una stanza
+window.addEventListener("load", () => {
+    if (window.location.hash.includes("#room=")) {
+        console.log("Stanza rilevata, pronto per il join.");
+    }
+});
+
 function showChat() {
     startupDiv.classList.add("hidden");
     chatContainer.classList.remove("hidden");
@@ -66,10 +73,13 @@ btnJoinRoom.addEventListener("click", async () => {
     const hash = window.location.hash;
     if (!hash.includes("#room=")) return alert("Link non valido!");
     const roomId = hash.split("#room=")[1];
+    
     const roomRef = window.chpriv.ref(window.chpriv.rtdb, `presence/${roomId}`);
     const snapshot = await window.chpriv.get(roomRef);
     const data = snapshot.exists() ? snapshot.val() : {};
+    
     if (Object.keys(data).length >= 2) return alert("ERRORE: La stanza è piena.");
+    
     await window.chpriv.set(window.chpriv.ref(window.chpriv.rtdb, `presence/${roomId}/user2`), { nickname });
     watchPresence(roomId);
     startMessageListener(roomId);
