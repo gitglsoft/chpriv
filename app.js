@@ -12,6 +12,48 @@ const joinBtn = document.getElementById("btnJoinRoom");
 const roomInfo = document.getElementById("roomInfo");
 const meInfo = document.getElementById("meInfo");
 const otherInfo = document.getElementById("otherInfo");
+function watchPresence(roomId, myNickname) {
+
+const roomRef =
+window.chpriv.ref(
+window.chpriv.rtdb,
+`presence/${roomId}`
+);
+
+window.chpriv.onValue(
+roomRef,
+(snapshot) => {
+
+```
+  const data =
+    snapshot.exists()
+      ? snapshot.val()
+      : {};
+
+  const users =
+    Object.values(data);
+
+  const otherUser =
+    users.find(
+      user => user.nickname !== myNickname
+    );
+
+  if (otherUser) {
+
+    otherInfo.textContent =
+      otherUser.nickname + " (online)";
+
+  } else {
+
+    otherInfo.textContent =
+      "In attesa dell'altro utente...";
+  }
+}
+```
+
+);
+}
+
 
 // UTILITA'
 function getRoomFromUrl() {
