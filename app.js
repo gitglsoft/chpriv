@@ -1,49 +1,66 @@
-import { collection, addDoc, serverTimestamp, query, orderBy, onSnapshot, updateDoc, doc, deleteDoc } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore.js";
+import { collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore.js";
 import { initFirebase } from "./firebase.js";
 
-// Inizializzazione Firebase
 await initFirebase();
 
-// RIFERIMENTI DOM (Dichiarati una sola volta)
 const startupDiv = document.getElementById("startup");
 const chatContainer = document.getElementById("chatContainer");
-const messagesDiv = document.getElementById("messages");
-const messageInput = document.getElementById("messageInput");
-const createBtn = document.getElementById("btnCreateRoom");
-const joinBtn = document.getElementById("btnJoinRoom");
-const sendBtn = document.getElementById("sendBtn");
+const roomInfo = document.getElementById("roomInfo");
+const btnCreateRoom = document.getElementById("btnCreateRoom");
+const btnJoinRoom = document.getElementById("btnJoinRoom");
 
-// LOGICA TRANSIZIONE
+// Funzione di utilità per cambiare schermata
 function showChat() {
     startupDiv.classList.add("hidden");
     chatContainer.classList.remove("hidden");
 }
 
-// LOGICA MESSAGGI
-window.sendMessage = async (roomId, nickname, text) => {
-    await addDoc(collection(window.chpriv.db, "rooms", roomId, "messages"), {
-        text, sender: nickname, createdAt: serverTimestamp(), read: false
+// CREA STANZA
+btnCreateRoom.addEventListener("click", async () => {
+    const nickname = document.getElementById("nickname").value.trim();
+    if (!nickname) return alert("Inserisci un nickname!");
+
+    const roomId = crypto.randomUUID(); // Genera ID univoco
+    
+    // Scrive nel database che l'utente 1 è dentro
+    await window.chpriv.set(window.chpriv.ref(window.chpriv.rtdb, `presence/${roomId}/user1`), {
+        nickname: nickname,
+        joinedAt: Date.now()
     });
-};
 
-// BOTTONI (Ora funzionano perché non ci sono errori di sintassi)
-createBtn.addEventListener("click", () => {
-    console.log("Creazione...");
-    showChat(); 
-});
-
-joinBtn.addEventListener("click", () => {
-    console.log("Entrata...");
+    // Mostra il link
+    const roomLink = `${window.location.origin}${window.location.pathname}#room=${roomId}`;
+    roomInfo.innerHTML = `Stanza creata! Copia questo link e invialo al tuo contatto:<br><br><b>${roomLink}</b>`;
+    
+    // Bottone per copiare
+    navigator.clipboard.writeText(roomLink);
+    alert("Link copiato negli appunti! Ora attendi l'altro utente.");
     showChat();
 });
 
-sendBtn.addEventListener("click", async () => {
-    const text = messageInput.value.trim();
-    if (text) {
-        // Usa una funzione globale per il test
-        console.log("Messaggio inviato:", text);
-        messageInput.value = "";
-    }
-});
+// ENTRA NELLA STANZA
+btnJoinRoom.addEventListener("click", async () => {
+    const nickname = document.getElementById("nickname").value.trim();
+    const hash = window.location.hash;
+    const roomId = hash.replace("#room=", "");
 
-console.log("ChPriv v2 caricato correttamente senza errori");
+    if (!roomId) return alert("Devi usare un link valido per entrare!");
+    
+    const roomRef = window.chpriv.ref(window.chpriv.rtdb, `presence/${roomId}`);
+    const snapshot = await window.chpriv.get(roomRef);
+    const data = snapshot.exists() ? snapshot.val() : {};
+    
+    // Limite 2 persone
+    if (Object.keys(data).length >= 2) {
+        alert("ERRORE: Stanza piena o non autorizzata.");
+        return;
+    }
+
+    // Aggiunge utente 2
+    await window.chpriv.set(window.chpriv.ref(window.chpriv.rtdb, `presence/${roomId}/user2`), {
+        nickname: nickname,
+        joinedAt: Date.now()
+    });
+
+    showChat();
+});
