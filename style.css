@@ -1,9 +1,11 @@
+/* --- BASE & RESET --- */
 * { margin: 0; padding: 0; box-sizing: border-box; }
 body { font-family: 'Segoe UI', Arial, sans-serif; background: #0f172a; color: #f1f5f9; height: 100vh; display: flex; justify-content: center; align-items: center; }
 .hidden { display: none !important; }
 
+/* --- STARTUP SCREEN --- */
 #startup { width: 90%; max-width: 450px; padding: 30px; background: #1e293b; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.5); text-align: center; }
-#startup h1 { margin-bottom: 25px; color: #38bdf8; }
+.main-logo { width: 100%; max-width: 300px; margin-bottom: 20px; display: block; margin-left: auto; margin-right: auto; }
 #startup input { width: 100%; padding: 14px; margin-bottom: 12px; border: 1px solid #334155; border-radius: 10px; background: #0f172a; color: white; }
 
 .buttons { display: flex; gap: 10px; margin-top: 10px; }
@@ -12,95 +14,18 @@ button:hover { transform: translateY(-2px); filter: brightness(1.1); }
 #btnCreateRoom { background: #059669; color: white; flex: 1; }
 #btnJoinRoom { background: #2563eb; color: white; flex: 1; }
 
+/* --- CHAT CONTAINER --- */
 #chatContainer { width: 100%; height: 100%; display: flex; flex-direction: column; background: #0f172a; }
-header { background: #1e293b; padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #334155; }
+header { position: relative; background: #1e293b; padding: 20px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #334155; min-height: 80px; }
+.header-logo { height: 60px; width: auto; position: absolute; left: 50%; transform: translateX(-50%); }
 .topButtons { display: flex; gap: 10px; }
 #copyLinkBtn { background: #334155; color: white; }
 #clearBtn { background: #d97706; color: white; }
 #exitBtn { background: #ef4444; color: white; }
 
-#messages { flex: 1; padding: 20px; overflow-y: auto; }
-.message { background: #334155; padding: 12px; border-radius: 12px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; }
-.blur-text { filter: blur(5px); background: #ffffff11; padding: 2px 6px; border-radius: 4px; }
+/* --- MESSAGES AREA --- */
+#messages { flex: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 15px; }
 
-#emojiBar { padding: 15px; background: #1e293b; display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; border-top: 1px solid #334155; }
-#emojiBar span { cursor: pointer; font-size: 24px; transition: 0.2s; padding: 5px; }
-#emojiBar span:hover { transform: scale(1.4); }
-
-#composer { display: flex; padding: 15px; background: #1e293b; gap: 10px; border-top: 1px solid #334155; }
-#messageInput { flex: 1; padding: 12px; border-radius: 10px; border: 1px solid #334155; background: #0f172a; color: white; }
-#sendBtn { background: #059669; color: white; padding: 0 25px; }
-
-/* ... mantieni tutto il CSS precedente e aggiungi questo in fondo ... */
-
-.main-logo {
-    width: 100%;
-    max-width: 300px;
-    margin-bottom: 20px;
-    display: block;
-    margin-left: auto;
-    margin-right: auto;
-}
-
-/* Modifica questa sezione nel tuo style.css */
-
-.header-logo {
-    height: 60px; /* Portato da 30px a 60px */
-    width: auto;
-    position: absolute;
-    left: 50%;
-    transform: translateX(-50%);
-}
-
-/* Modifica l'header per accogliere l'altezza maggiore del logo */
-header { 
-    position: relative; 
-    background: #1e293b; 
-    padding: 20px 20px; /* Aumentato leggermente per dare più respiro */
-    display: flex; 
-    justify-content: space-between; 
-    align-items: center; 
-    border-bottom: 1px solid #334155;
-    min-height: 80px; /* Assicura che l'header non venga schiacciato dal logo */
-}
-/* Container dei messaggi per allineamento */
-#messages { 
-    display: flex; 
-    flex-direction: column; 
-    padding: 20px; 
-    gap: 15px; 
-}
-
-.message { 
-    max-width: 70%; 
-    padding: 12px 16px; 
-    border-radius: 18px; 
-    position: relative; 
-    font-size: 15px;
-    line-height: 1.4;
-}
-
-/* Messaggio inviato (Destra) */
-.message.sent { 
-    align-self: flex-end; 
-    background: #0ea5e9; 
-    color: white; 
-    border-bottom-right-radius: 4px;
-}
-
-/* Messaggio ricevuto (Sinistra) */
-.message.received { 
-    align-self: flex-start; 
-    background: #334155; 
-    color: #e2e8f0; 
-    font-style: italic; /* Corsivo come richiesto */
-    border-bottom-left-radius: 4px;
-}
-
-/* Nome utente stilizzato */
-.msg-sender { font-size: 11px; margin-bottom: 4px; display: block; opacity: 0.8; }
-
-/* Aggiorna o aggiungi queste regole */
 .message { 
     max-width: 70%; 
     padding: 10px 14px; 
@@ -108,10 +33,37 @@ header {
     position: relative; 
     font-size: 15px;
     display: flex;
-    flex-direction: column; /* Impila nome, testo e ora */
+    flex-direction: column; 
     gap: 4px;
 }
+
+.message.sent { align-self: flex-end; background: #0ea5e9; color: white; border-bottom-right-radius: 4px; }
+.message.received { align-self: flex-start; background: #334155; color: #e2e8f0; font-style: italic; border-bottom-left-radius: 4px; }
 
 .msg-sender { font-size: 10px; font-weight: bold; opacity: 0.6; margin-bottom: 2px; }
 .msg-text { word-wrap: break-word; }
 .msg-time { font-size: 9px; align-self: flex-end; opacity: 0.7; margin-top: 4px; }
+.blur-text { filter: blur(5px); background: #ffffff11; padding: 2px 6px; border-radius: 4px; }
+
+/* --- EMOJI & COMPOSER --- */
+#emojiPicker {
+    position: absolute;
+    bottom: 70px;
+    left: 20px;
+    background: #1e293b;
+    padding: 10px;
+    border-radius: 10px;
+    border: 1px solid #334155;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    width: calc(100% - 40px);
+    z-index: 10;
+}
+#emojiPicker span { cursor: pointer; font-size: 20px; padding: 5px; }
+#emojiPicker.hidden { display: none; }
+#emojiBtn { background: #475569; color: white; padding: 0 15px; }
+
+#composer { display: flex; padding: 15px; background: #1e293b; gap: 10px; border-top: 1px solid #334155; }
+#messageInput { flex: 1; padding: 12px; border-radius: 10px; border: 1px solid #334155; background: #0f172a; color: white; }
+#sendBtn { background: #059669; color: white; padding: 0 25px; }
