@@ -30,8 +30,13 @@ async function startApp() {
 
     async function joinRoom(roomId, role, nickname) {
         const roomRef = ref(window.chpriv.rtdb, `presence/${roomId}/${role}`);
+        
+        // Pulizia automatica alla chiusura
         window.chpriv.onDisconnect(roomRef).remove(); 
-        await window.chpriv.set(roomRef, { nickname });
+        
+        // Sovrascrittura forzata per evitare blocchi
+        await window.chpriv.set(roomRef, { nickname, joinedAt: Date.now() });
+        
         startupDiv.classList.add("hidden");
         chatContainer.classList.remove("hidden");
         window.location.hash = `#room=${roomId}`;
@@ -89,11 +94,14 @@ async function startApp() {
         const nickname = nicknameInput.value.trim();
         if (!nickname) return alert("Inserisci nickname!");
         const roomId = getRoomId();
+        
+        // Verifica stato presenza per scegliere il ruolo
         const snapshot = await window.chpriv.get(ref(window.chpriv.rtdb, `presence/${roomId}`));
         const data = snapshot.exists() ? snapshot.val() : {};
-        let role = !data.user1 ? "user1" : !data.user2 ? "user2" : null;
-        if (!role && !confirm("Stanza piena. Vuoi forzare?")) return;
-        await joinRoom(roomId, role || "user1", nickname);
+        
+        // Assegna user1 se libero, altrimenti user2 (sovrascrive sempre user2 se già occupato)
+        let role = !data.user1 ? "user1" : "user2";
+        await joinRoom(roomId, role, nickname);
     };
 
     sendBtn.onclick = async () => {
@@ -118,6 +126,7 @@ async function startApp() {
     exitBtn.onclick = () => { window.location.hash = ""; window.location.reload(); };
 }
 
+// Avvio protetto
 if (document.readyState === "loading") {
     document.addEventListener("DOMContentLoaded", startApp);
 } else {
