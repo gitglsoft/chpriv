@@ -45,6 +45,11 @@ header {
 #clearBtn { background: #d97706; color: white; }
 #exitBtn { background: #ef4444; color: white; }
 
+/* --- STATUS COLORS (Header) --- */
+.status-waiting { color: #f97316; }
+.status-connected { color: #22c55e; }
+.status-nickname { color: #ffffff; font-weight: bold; }
+
 /* --- MESSAGES AREA --- */
 #messages { flex: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 15px; }
 
