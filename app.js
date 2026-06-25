@@ -1,4 +1,4 @@
-import { collection, addDoc, serverTimestamp, query, orderBy, onSnapshot, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore.js";
+import { collection, addDoc, serverTimestamp, query, orderBy, onSnapshot, deleteDoc, doc, getDocs } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore.js";
 import { ref, set, get, onValue, onDisconnect } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-database.js";
 import { initFirebase } from "./firebase.js";
 
@@ -36,12 +36,15 @@ async function startApp() {
         chatContainer.classList.remove("hidden");
         window.location.hash = `#room=${roomId}`;
         
-        // Ascolto presenza
+        startMessageListener(roomId);
+    }
+
+    function startMessageListener(roomId) {
         window.chpriv.onValue(ref(window.chpriv.rtdb, `presence/${roomId}`), (snapshot) => {
-            window.isChatPrivate = (Object.keys(snapshot.val() || {}).length < 2);
+            const presenceData = snapshot.val() || {};
+            window.isChatPrivate = (Object.keys(presenceData).length < 2);
         });
 
-        // Ascolto messaggi
         onSnapshot(query(collection(window.chpriv.db, "messages", roomId, "list"), orderBy("createdAt")), (snapshot) => {
             snapshot.docChanges().forEach((change) => {
                 if (change.type === "added") {
@@ -73,6 +76,7 @@ async function startApp() {
         });
     }
 
+    // --- EVENT LISTENER ---
     btnCreateRoom.onclick = async () => {
         const nickname = nicknameInput.value.trim();
         if (!nickname) return alert("Inserisci nickname!");
@@ -99,6 +103,15 @@ async function startApp() {
             text, sender: nicknameInput.value.trim(), createdAt: serverTimestamp()
         });
         messageInput.value = "";
+    };
+
+    clearBtn.onclick = async () => {
+        const roomId = getRoomId();
+        const messagesRef = collection(window.chpriv.db, "messages", roomId, "list");
+        const snapshot = await getDocs(messagesRef);
+        snapshot.forEach(async (d) => await deleteDoc(doc(window.chpriv.db, "messages", roomId, "list", d.id)));
+        messagesDiv.innerHTML = "";
+        alert("Chat svuotata!");
     };
 
     copyLinkBtn.onclick = () => { navigator.clipboard.writeText(window.location.href); alert("Link copiato!"); };
