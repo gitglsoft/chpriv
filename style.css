@@ -99,3 +99,19 @@ header {
 
 /* Nome utente stilizzato */
 .msg-sender { font-size: 11px; margin-bottom: 4px; display: block; opacity: 0.8; }
+
+/* Aggiorna o aggiungi queste regole */
+.message { 
+    max-width: 70%; 
+    padding: 10px 14px; 
+    border-radius: 18px; 
+    position: relative; 
+    font-size: 15px;
+    display: flex;
+    flex-direction: column; /* Impila nome, testo e ora */
+    gap: 4px;
+}
+
+.msg-sender { font-size: 10px; font-weight: bold; opacity: 0.6; margin-bottom: 2px; }
+.msg-text { word-wrap: break-word; }
+.msg-time { font-size: 9px; align-self: flex-end; opacity: 0.7; margin-top: 4px; }
