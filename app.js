@@ -15,7 +15,8 @@ async function startApp() {
           messagesDiv = document.getElementById("messages"),
           copyLinkBtn = document.getElementById("copyLinkBtn"),
           exitBtn = document.getElementById("exitBtn"),
-          clearBtn = document.getElementById("clearBtn");
+          clearBtn = document.getElementById("clearBtn"),
+          otherInfo = document.getElementById("otherInfo"); // Elemento che aggiorneremo
 
     const generateCustomId = () => `${Math.floor(100 + Math.random() * 900)}${String.fromCharCode(97 + Math.floor(Math.random() * 26))}`;
 
@@ -30,33 +31,38 @@ async function startApp() {
 
     async function joinRoom(roomId, role, nickname) {
         const roomRef = ref(window.chpriv.rtdb, `presence/${roomId}/${role}`);
-        
-        // Pulizia automatica alla chiusura
         window.chpriv.onDisconnect(roomRef).remove(); 
-        
-        // Sovrascrittura forzata per evitare blocchi
         await window.chpriv.set(roomRef, { nickname, joinedAt: Date.now() });
         
         startupDiv.classList.add("hidden");
         chatContainer.classList.remove("hidden");
         window.location.hash = `#room=${roomId}`;
         
-        startMessageListener(roomId);
+        startMessageListener(roomId, nickname);
     }
 
-    function startMessageListener(roomId) {
+    function startMessageListener(roomId, myNickname) {
+        // Monitoraggio presenza con aggiornamento header
         window.chpriv.onValue(ref(window.chpriv.rtdb, `presence/${roomId}`), (snapshot) => {
             const presenceData = snapshot.val() || {};
-            window.isChatPrivate = (Object.keys(presenceData).length < 2);
+            const users = Object.entries(presenceData);
+            
+            // Aggiorna variabile di privacy
+            window.isChatPrivate = (users.length < 2);
+            
+            // Aggiorna Header: trova l'altro utente
+            const otherUser = users.find(([role, data]) => data.nickname !== myNickname);
+            otherInfo.textContent = otherUser ? `Connesso: ${otherUser[1].nickname}` : "In attesa di altri...";
         });
 
+        // Ascolto messaggi
         onSnapshot(query(collection(window.chpriv.db, "messages", roomId, "list"), orderBy("createdAt")), (snapshot) => {
             snapshot.docChanges().forEach((change) => {
                 if (change.type === "added") {
                     const data = change.doc.data();
                     const msgEl = document.createElement("div");
                     msgEl.className = "message";
-                    const isMyMessage = (data.sender === nicknameInput.value.trim());
+                    const isMyMessage = (data.sender === myNickname);
 
                     if (!window.isChatPrivate || isMyMessage) {
                         msgEl.innerHTML = `<span><b>${isMyMessage ? "Tu" : data.sender}:</b> ${data.text}</span>`;
@@ -94,12 +100,8 @@ async function startApp() {
         const nickname = nicknameInput.value.trim();
         if (!nickname) return alert("Inserisci nickname!");
         const roomId = getRoomId();
-        
-        // Verifica stato presenza per scegliere il ruolo
         const snapshot = await window.chpriv.get(ref(window.chpriv.rtdb, `presence/${roomId}`));
         const data = snapshot.exists() ? snapshot.val() : {};
-        
-        // Assegna user1 se libero, altrimenti user2 (sovrascrive sempre user2 se già occupato)
         let role = !data.user1 ? "user1" : "user2";
         await joinRoom(roomId, role, nickname);
     };
@@ -115,18 +117,15 @@ async function startApp() {
 
     clearBtn.onclick = async () => {
         const roomId = getRoomId();
-        const messagesRef = collection(window.chpriv.db, "messages", roomId, "list");
-        const snapshot = await getDocs(messagesRef);
+        const snapshot = await getDocs(collection(window.chpriv.db, "messages", roomId, "list"));
         snapshot.forEach(async (d) => await deleteDoc(doc(window.chpriv.db, "messages", roomId, "list", d.id)));
         messagesDiv.innerHTML = "";
-        alert("Chat svuotata!");
     };
 
     copyLinkBtn.onclick = () => { navigator.clipboard.writeText(window.location.href); alert("Link copiato!"); };
     exitBtn.onclick = () => { window.location.hash = ""; window.location.reload(); };
 }
 
-// Avvio protetto
 if (document.readyState === "loading") {
     document.addEventListener("DOMContentLoaded", startApp);
 } else {
