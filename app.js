@@ -60,13 +60,24 @@ async function startApp() {
                 if (change.type === "added") {
                     const data = change.doc.data();
                     const isMyMessage = (data.sender.trim().toLowerCase() === myNickname.trim().toLowerCase());
+                    const time = data.createdAt ? new Date(data.createdAt.seconds * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : "";
+
                     const msgEl = document.createElement("div");
                     msgEl.className = `message ${isMyMessage ? 'sent' : 'received'}`;
                     
                     if (!window.isChatPrivate || isMyMessage) {
-                        msgEl.innerHTML = `<span class="msg-sender">${isMyMessage ? "Tu" : data.sender}</span><span>${data.text}</span>`;
+                        msgEl.innerHTML = `
+                            <span class="msg-sender">${isMyMessage ? "Tu" : data.sender}</span>
+                            <span class="msg-text">${data.text}</span>
+                            <span class="msg-time">${time}</span>
+                        `;
                     } else {
-                        msgEl.innerHTML = `<span class="msg-sender">${data.sender}</span><span class="blur-text">[Criptato]</span><button class="read-btn">Leggi</button>`;
+                        msgEl.innerHTML = `
+                            <span class="msg-sender">${data.sender}</span>
+                            <span class="blur-text">[Criptato]</span>
+                            <button class="read-btn">Leggi</button>
+                            <span class="msg-time">${time}</span>
+                        `;
                         const readBtn = msgEl.querySelector(".read-btn");
                         readBtn.onclick = () => {
                             msgEl.querySelector(".blur-text").textContent = data.text;
@@ -85,17 +96,13 @@ async function startApp() {
         });
     }
 
-    // --- EVENT LISTENERS ---
     btnCreateRoom.onclick = async () => { if(!nicknameInput.value.trim()) return alert("Inserisci nickname!"); const id = generateCustomId(); localStorage.setItem("myRoomId", id); await joinRoom(id, "user1", nicknameInput.value.trim()); };
     btnJoinRoom.onclick = async () => { if(!nicknameInput.value.trim()) return alert("Inserisci nickname!"); const id = getRoomId(); const s = await window.chpriv.get(ref(window.chpriv.rtdb, `presence/${id}`)); const d = s.exists() ? s.val() : {}; await joinRoom(id, !d.user1 ? "user1" : "user2", nicknameInput.value.trim()); };
     
-    // Invia con Click
     sendBtn.onclick = sendMessage;
-    
-    // Invia con Tasto INVIO
     messageInput.onkeypress = (e) => { if (e.key === "Enter") sendMessage(); };
 
-    clearBtn.onclick = async () => { const s = await getDocs(collection(window.chpriv.db, "messages", getRoomId(), "list")); s.forEach(async (d) => await deleteDoc(doc(window.chpriv.db, "messages", getRoomId(), "list", d.id))); messagesDiv.innerHTML = ""; };
+    clearBtn.onclick = async () => { const s = await getDocs(collection(window.chpriv.db, "messages", getRoomId(), "list")); s.forEach(async (d) => await deleteDoc(doc(window.chpriv.db, "messages", getRoomId(), "list", d.id))); messagesDiv.innerHTML = ""; alert("Chat svuotata!"); };
     copyLinkBtn.onclick = () => { navigator.clipboard.writeText(window.location.href); alert("Link copiato!"); };
     exitBtn.onclick = () => { window.location.hash = ""; window.location.reload(); };
 }
