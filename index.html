@@ -29,32 +29,18 @@
                 <button id="exitBtn">Esci</button>
             </div>
         </header>
+        
         <div id="messages"></div>
 
-        <div id="emojiBar">
-            <span onclick="document.getElementById('messageInput').value += '🍒'">🍒</span>
-            <span onclick="document.getElementById('messageInput').value += '🥔'">🥔</span>
-            <span onclick="document.getElementById('messageInput').value += '🍌'">🍌</span>
-            <span onclick="document.getElementById('messageInput').value += '🥖'">🥖</span>
-            <span onclick="document.getElementById('messageInput').value += '🕯️'">🕯️</span>
-            <span onclick="document.getElementById('messageInput').value += '⛺️'">⛺️</span>
-            <span onclick="document.getElementById('messageInput').value += '👙'">👙</span>
-            <span onclick="document.getElementById('messageInput').value += '👊'">👊</span>
-            <span onclick="document.getElementById('messageInput').value += '🐋'">🐋</span>
-            <span onclick="document.getElementById('messageInput').value += '🚰'">🚰</span>
-            <span onclick="document.getElementById('messageInput').value += '🌡️'">🌡️</span>
-            <span onclick="document.getElementById('messageInput').value += '🍆'">🍆</span>
-            <span onclick="document.getElementById('messageInput').value += '💦'">💦</span>
-            <span onclick="document.getElementById('messageInput').value += '🟣'">🟣</span>
-            <span onclick="document.getElementById('messageInput').value += '🐷'">🐷</span>
-            <span onclick="document.getElementById('messageInput').value += '💧'">💧</span>
-            <span onclick="document.getElementById('messageInput').value += '😜'">😜</span>
-            <span onclick="document.getElementById('messageInput').value += '👅'">👅</span>
-            <span onclick="document.getElementById('messageInput').value += '🫂'">🫂</span>
-            <span onclick="document.getElementById('messageInput').value += '💆‍♀️'">💆‍♀️</span>
+        <div id="emojiPicker" class="hidden">
+            <span>🍒</span><span>🥔</span><span>🍌</span><span>🥖</span><span>🕯️</span>
+            <span>⛺️</span><span>👙</span><span>👊</span><span>🐋</span><span>🚰</span>
+            <span>🌡️</span><span>🍆</span><span>💦</span><span>🟣</span><span>🐷</span>
+            <span>💧</span><span>😜</span><span>👅</span><span>🫂</span><span>💆‍♀️</span>
         </div>
 
         <div id="composer">
+            <button id="emojiBtn">😊</button>
             <input type="text" id="messageInput" placeholder="Scrivi un messaggio...">
             <button id="sendBtn">Invia</button>
         </div>
