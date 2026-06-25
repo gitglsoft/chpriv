@@ -42,21 +42,24 @@ header { background: #1e293b; padding: 15px 20px; display: flex; justify-content
     margin-right: auto;
 }
 
+/* Modifica questa sezione nel tuo style.css */
+
 .header-logo {
-    height: 30px; /* Altezza adattata all'header */
+    height: 60px; /* Portato da 30px a 60px */
     width: auto;
     position: absolute;
     left: 50%;
     transform: translateX(-50%);
 }
 
-/* Modifica header per permettere il centraggio del logo */
+/* Modifica l'header per accogliere l'altezza maggiore del logo */
 header { 
-    position: relative; /* Necessario per centrare il logo */
+    position: relative; 
     background: #1e293b; 
-    padding: 15px 20px; 
+    padding: 20px 20px; /* Aumentato leggermente per dare più respiro */
     display: flex; 
     justify-content: space-between; 
     align-items: center; 
-    border-bottom: 1px solid #334155; 
+    border-bottom: 1px solid #334155;
+    min-height: 80px; /* Assicura che l'header non venga schiacciato dal logo */
 }
