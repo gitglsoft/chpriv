@@ -16,8 +16,30 @@ button:hover { transform: translateY(-2px); filter: brightness(1.1); }
 
 /* --- CHAT CONTAINER --- */
 #chatContainer { width: 100%; height: 100%; display: flex; flex-direction: column; background: #0f172a; }
-header { position: relative; background: #1e293b; padding: 20px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #334155; min-height: 80px; }
-.header-logo { height: 60px; width: auto; position: absolute; left: 50%; transform: translateX(-50%); }
+
+header { 
+    position: relative; 
+    background: #1e293b; 
+    padding: 10px 15px; 
+    display: flex; 
+    justify-content: space-between; 
+    align-items: center; 
+    border-bottom: 1px solid #334155; 
+    min-height: 60px; 
+}
+
+.header-logo {
+    height: 50px; 
+    width: auto;
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+}
+
+@media (max-width: 600px) {
+    .header-logo { height: 40px; }
+}
+
 .topButtons { display: flex; gap: 10px; }
 #copyLinkBtn { background: #334155; color: white; }
 #clearBtn { background: #d97706; color: white; }
@@ -38,9 +60,18 @@ header { position: relative; background: #1e293b; padding: 20px; display: flex; 
 }
 
 .message.sent { align-self: flex-end; background: #0ea5e9; color: white; border-bottom-right-radius: 4px; }
-.message.received { align-self: flex-start; background: #334155; color: #e2e8f0; font-style: italic; border-bottom-left-radius: 4px; }
 
-.msg-sender { font-size: 10px; font-weight: bold; opacity: 0.6; margin-bottom: 2px; }
+.message.received { 
+    align-self: flex-start; 
+    background: #f97316; 
+    color: #ffffff; 
+    font-style: italic; 
+    border-bottom-left-radius: 4px;
+}
+
+.message.received .msg-sender { color: #ffe4cc; }
+
+.msg-sender { font-size: 10px; font-weight: bold; opacity: 0.8; margin-bottom: 2px; }
 .msg-text { word-wrap: break-word; }
 .msg-time { font-size: 9px; align-self: flex-end; opacity: 0.7; margin-top: 4px; }
 .blur-text { filter: blur(5px); background: #ffffff11; padding: 2px 6px; border-radius: 4px; }
