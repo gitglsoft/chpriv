@@ -31,7 +31,9 @@ async function startApp() {
         const text = messageInput.value.trim();
         if (!text) return;
         await addDoc(collection(window.chpriv.db, "messages", getRoomId(), "list"), { 
-            text, sender: nicknameInput.value.trim(), createdAt: serverTimestamp() 
+            text, 
+            sender: nicknameInput.value.trim(), 
+            createdAt: serverTimestamp() 
         });
         messageInput.value = "";
     }
@@ -60,20 +62,37 @@ async function startApp() {
                 if (change.type === "added") {
                     const data = change.doc.data();
                     const isMyMessage = (data.sender.trim().toLowerCase() === myNickname.trim().toLowerCase());
-                    const time = data.createdAt ? new Date(data.createdAt.seconds * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : "";
+                    
+                    // Utilizziamo .toDate() per convertire il timestamp di Firebase.
+                    // Se createdAt non è ancora disponibile (messaggio istantaneo), usiamo new Date()
+                    const dateObj = data.createdAt ? data.createdAt.toDate() : new Date();
+                    const time = dateObj.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
                     const msgEl = document.createElement("div");
                     msgEl.className = `message ${isMyMessage ? 'sent' : 'received'}`;
                     
                     if (!window.isChatPrivate || isMyMessage) {
-                        msgEl.innerHTML = `<span class="msg-sender">${isMyMessage ? "Tu" : data.sender}</span><span class="msg-text">${data.text}</span><span class="msg-time">${time}</span>`;
+                        msgEl.innerHTML = `
+                            <span class="msg-sender">${isMyMessage ? "Tu" : data.sender}</span>
+                            <span class="msg-text">${data.text}</span>
+                            <span class="msg-time">${time}</span>
+                        `;
                     } else {
-                        msgEl.innerHTML = `<span class="msg-sender">${data.sender}</span><span class="blur-text">[Criptato]</span><button class="read-btn">Leggi</button><span class="msg-time">${time}</span>`;
-                        msgEl.querySelector(".read-btn").onclick = (e) => {
-                            e.target.parentElement.querySelector(".blur-text").textContent = data.text;
-                            e.target.parentElement.querySelector(".blur-text").style.filter = "none";
-                            e.target.style.display = "none";
-                            setTimeout(async () => { try { await deleteDoc(doc(window.chpriv.db, "messages", roomId, "list", change.doc.id)); } catch (e) {} }, 3000);
+                        msgEl.innerHTML = `
+                            <span class="msg-sender">${data.sender}</span>
+                            <span class="blur-text">[Criptato]</span>
+                            <button class="read-btn">Leggi</button>
+                            <span class="msg-time">${time}</span>
+                        `;
+                        const readBtn = msgEl.querySelector(".read-btn");
+                        readBtn.onclick = (e) => {
+                            msgEl.querySelector(".blur-text").textContent = data.text;
+                            msgEl.querySelector(".blur-text").style.filter = "none";
+                            readBtn.style.display = "none";
+                            setTimeout(async () => {
+                                msgEl.remove();
+                                try { await deleteDoc(doc(window.chpriv.db, "messages", roomId, "list", change.doc.id)); } catch (e) {}
+                            }, 3000);
                         };
                     }
                     messagesDiv.appendChild(msgEl);
@@ -83,7 +102,6 @@ async function startApp() {
         });
     }
 
-    // --- EVENT LISTENERS ---
     btnCreateRoom.onclick = async () => { if(!nicknameInput.value.trim()) return alert("Inserisci nickname!"); const id = generateCustomId(); localStorage.setItem("myRoomId", id); await joinRoom(id, "user1", nicknameInput.value.trim()); };
     btnJoinRoom.onclick = async () => { if(!nicknameInput.value.trim()) return alert("Inserisci nickname!"); const id = getRoomId(); const s = await window.chpriv.get(ref(window.chpriv.rtdb, `presence/${id}`)); const d = s.exists() ? s.val() : {}; await joinRoom(id, !d.user1 ? "user1" : "user2", nicknameInput.value.trim()); };
     
