@@ -25,6 +25,17 @@ async function startApp() {
         return roomId;
     };
 
+    async function sendMessage() {
+        const text = messageInput.value.trim();
+        if (!text) return;
+        await addDoc(collection(window.chpriv.db, "messages", getRoomId(), "list"), { 
+            text, 
+            sender: nicknameInput.value.trim(), 
+            createdAt: serverTimestamp() 
+        });
+        messageInput.value = "";
+    }
+
     async function joinRoom(roomId, role, nickname) {
         const roomRef = ref(window.chpriv.rtdb, `presence/${roomId}/${role}`);
         window.chpriv.onDisconnect(roomRef).remove(); 
@@ -74,9 +85,16 @@ async function startApp() {
         });
     }
 
+    // --- EVENT LISTENERS ---
     btnCreateRoom.onclick = async () => { if(!nicknameInput.value.trim()) return alert("Inserisci nickname!"); const id = generateCustomId(); localStorage.setItem("myRoomId", id); await joinRoom(id, "user1", nicknameInput.value.trim()); };
     btnJoinRoom.onclick = async () => { if(!nicknameInput.value.trim()) return alert("Inserisci nickname!"); const id = getRoomId(); const s = await window.chpriv.get(ref(window.chpriv.rtdb, `presence/${id}`)); const d = s.exists() ? s.val() : {}; await joinRoom(id, !d.user1 ? "user1" : "user2", nicknameInput.value.trim()); };
-    sendBtn.onclick = async () => { const text = messageInput.value.trim(); if (!text) return; await addDoc(collection(window.chpriv.db, "messages", getRoomId(), "list"), { text, sender: nicknameInput.value.trim(), createdAt: serverTimestamp() }); messageInput.value = ""; };
+    
+    // Invia con Click
+    sendBtn.onclick = sendMessage;
+    
+    // Invia con Tasto INVIO
+    messageInput.onkeypress = (e) => { if (e.key === "Enter") sendMessage(); };
+
     clearBtn.onclick = async () => { const s = await getDocs(collection(window.chpriv.db, "messages", getRoomId(), "list")); s.forEach(async (d) => await deleteDoc(doc(window.chpriv.db, "messages", getRoomId(), "list", d.id))); messagesDiv.innerHTML = ""; };
     copyLinkBtn.onclick = () => { navigator.clipboard.writeText(window.location.href); alert("Link copiato!"); };
     exitBtn.onclick = () => { window.location.hash = ""; window.location.reload(); };
