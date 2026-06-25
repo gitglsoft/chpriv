@@ -16,7 +16,7 @@ async function startApp() {
           copyLinkBtn = document.getElementById("copyLinkBtn"),
           exitBtn = document.getElementById("exitBtn"),
           clearBtn = document.getElementById("clearBtn"),
-          otherInfo = document.getElementById("otherInfo"); // Elemento che aggiorneremo
+          otherInfo = document.getElementById("otherInfo");
 
     const generateCustomId = () => `${Math.floor(100 + Math.random() * 900)}${String.fromCharCode(97 + Math.floor(Math.random() * 26))}`;
 
@@ -42,17 +42,23 @@ async function startApp() {
     }
 
     function startMessageListener(roomId, myNickname) {
-        // Monitoraggio presenza con aggiornamento header
+        // Monitoraggio presenza con logica robusta per l'header
         window.chpriv.onValue(ref(window.chpriv.rtdb, `presence/${roomId}`), (snapshot) => {
             const presenceData = snapshot.val() || {};
             const users = Object.entries(presenceData);
             
-            // Aggiorna variabile di privacy
             window.isChatPrivate = (users.length < 2);
             
-            // Aggiorna Header: trova l'altro utente
-            const otherUser = users.find(([role, data]) => data.nickname !== myNickname);
-            otherInfo.textContent = otherUser ? `Connesso: ${otherUser[1].nickname}` : "In attesa di altri...";
+            // Trova l'altro utente escludendo il proprio nickname
+            const otherUser = users.find(([role, data]) => 
+                data.nickname.trim().toLowerCase() !== myNickname.trim().toLowerCase()
+            );
+
+            if (otherUser) {
+                otherInfo.textContent = `Connesso: ${otherUser[1].nickname}`;
+            } else {
+                otherInfo.textContent = "In attesa di altri...";
+            }
         });
 
         // Ascolto messaggi
@@ -62,7 +68,7 @@ async function startApp() {
                     const data = change.doc.data();
                     const msgEl = document.createElement("div");
                     msgEl.className = "message";
-                    const isMyMessage = (data.sender === myNickname);
+                    const isMyMessage = (data.sender.trim().toLowerCase() === myNickname.trim().toLowerCase());
 
                     if (!window.isChatPrivate || isMyMessage) {
                         msgEl.innerHTML = `<span><b>${isMyMessage ? "Tu" : data.sender}:</b> ${data.text}</span>`;
@@ -120,6 +126,7 @@ async function startApp() {
         const snapshot = await getDocs(collection(window.chpriv.db, "messages", roomId, "list"));
         snapshot.forEach(async (d) => await deleteDoc(doc(window.chpriv.db, "messages", roomId, "list", d.id)));
         messagesDiv.innerHTML = "";
+        alert("Chat svuotata!");
     };
 
     copyLinkBtn.onclick = () => { navigator.clipboard.writeText(window.location.href); alert("Link copiato!"); };
