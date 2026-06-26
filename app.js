@@ -20,6 +20,7 @@ async function startApp() {
           emojiBtn = document.getElementById("emojiBtn"),
           emojiPicker = document.getElementById("emojiPicker");
 
+    const originalTitle = document.title;
     const generateCustomId = () => `${Math.floor(100 + Math.random() * 900)}${String.fromCharCode(97 + Math.floor(Math.random() * 26))}`;
     const getRoomId = () => {
         let roomId = window.location.hash.split("#room=")[1];
@@ -57,10 +58,14 @@ async function startApp() {
             
             if (otherUser) {
                 otherInfo.innerHTML = `<span class="status-connected">Connesso:</span> <span class="status-nickname">${otherUser[1].nickname}</span>`;
+                if (!document.title.includes("●")) document.title = "● " + originalTitle;
             } else {
                 otherInfo.innerHTML = `<span class="status-waiting">In attesa...</span>`;
+                document.title = originalTitle;
             }
         });
+
+        window.onfocus = () => { document.title = originalTitle; };
 
         onSnapshot(query(collection(window.chpriv.db, "messages", roomId, "list"), orderBy("createdAt")), (snapshot) => {
             snapshot.docChanges().forEach((change) => {
@@ -106,7 +111,7 @@ async function startApp() {
                             };
                             
                             deleteBtn.onclick = deleteAction;
-                            setTimeout(deleteAction, 10000); // 10 secondi
+                            setTimeout(deleteAction, 10000);
                         };
                     }
                     messagesDiv.appendChild(msgEl);
