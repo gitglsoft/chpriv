@@ -60,16 +60,13 @@ async function startApp() {
             });
             
             if (otherUser) {
-                // Connesso: "Connesso:" ROSSO, Nickname BIANCO
                 otherInfo.innerHTML = `<span class="status-connected">Connesso:</span> <span class="status-nickname">${otherUser[1].nickname}</span>`;
-                if (!document.title.includes("●")) document.title = "● " + originalTitle;
             } else {
-                // In attesa: "In attesa..." VERDE
                 otherInfo.innerHTML = `<span class="status-waiting">In attesa...</span>`;
-                document.title = originalTitle;
             }
         });
 
+        // Reset titolo quando l'utente torna sulla finestra
         window.onfocus = () => { document.title = originalTitle; };
 
         onSnapshot(query(collection(window.chpriv.db, "messages", roomId, "list"), orderBy("createdAt")), (snapshot) => {
@@ -77,19 +74,19 @@ async function startApp() {
                 if (change.type === "added") {
                     const data = change.doc.data();
                     const isMyMessage = (data.sender.trim().toLowerCase() === myNickname.trim().toLowerCase());
+                    
+                    // Notifica titolo se la pagina non è in primo piano
+                    if (!isMyMessage && document.hidden) {
+                        document.title = "● Nuovo Messaggio!";
+                    }
+
                     const dateObj = data.createdAt ? data.createdAt.toDate() : new Date();
                     const time = dateObj.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
                     const msgEl = document.createElement("div");
                     msgEl.className = `message ${isMyMessage ? 'sent' : 'received'}`;
                     
-                    if (!window.isChatPrivate || isMyMessage) {
-                        msgEl.innerHTML = `
-                            <span class="msg-sender">${isMyMessage ? "Tu" : data.sender}</span>
-                            <span class="msg-text">${data.text}</span>
-                            <span class="msg-time">${time}</span>
-                        `;
-                    } else {
+                    if (window.isChatPrivate && !isMyMessage) {
                         msgEl.innerHTML = `
                             <span class="msg-sender">${data.sender}</span>
                             <span class="blur-text">[Criptato]</span>
@@ -118,6 +115,12 @@ async function startApp() {
                             deleteBtn.onclick = deleteAction;
                             setTimeout(deleteAction, 10000); // 10 secondi
                         };
+                    } else {
+                        msgEl.innerHTML = `
+                            <span class="msg-sender">${isMyMessage ? "Tu" : data.sender}</span>
+                            <span class="msg-text">${data.text}</span>
+                            <span class="msg-time">${time}</span>
+                        `;
                     }
                     messagesDiv.appendChild(msgEl);
                     messagesDiv.scrollTop = messagesDiv.scrollHeight;
