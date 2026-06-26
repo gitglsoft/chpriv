@@ -54,7 +54,12 @@ async function startApp() {
             const users = Object.entries(presenceData);
             window.isChatPrivate = (users.length < 2);
             const otherUser = users.find(([role, data]) => data.nickname.trim().toLowerCase() !== myNickname.trim().toLowerCase());
-            otherInfo.textContent = otherUser ? `Connesso: ${otherUser[1].nickname}` : "In attesa...";
+            
+            if (otherUser) {
+                otherInfo.innerHTML = `<span class="status-connected">Connesso:</span> <span class="status-nickname">${otherUser[1].nickname}</span>`;
+            } else {
+                otherInfo.innerHTML = `<span class="status-waiting">In attesa...</span>`;
+            }
         });
 
         onSnapshot(query(collection(window.chpriv.db, "messages", roomId, "list"), orderBy("createdAt")), (snapshot) => {
@@ -62,9 +67,6 @@ async function startApp() {
                 if (change.type === "added") {
                     const data = change.doc.data();
                     const isMyMessage = (data.sender.trim().toLowerCase() === myNickname.trim().toLowerCase());
-                    
-                    // Utilizziamo .toDate() per convertire il timestamp di Firebase.
-                    // Se createdAt non è ancora disponibile (messaggio istantaneo), usiamo new Date()
                     const dateObj = data.createdAt ? data.createdAt.toDate() : new Date();
                     const time = dateObj.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
@@ -84,15 +86,27 @@ async function startApp() {
                             <button class="read-btn">Leggi</button>
                             <span class="msg-time">${time}</span>
                         `;
+                        
                         const readBtn = msgEl.querySelector(".read-btn");
-                        readBtn.onclick = (e) => {
-                            msgEl.querySelector(".blur-text").textContent = data.text;
-                            msgEl.querySelector(".blur-text").style.filter = "none";
+                        const blurSpan = msgEl.querySelector(".blur-text");
+                        
+                        readBtn.onclick = () => {
+                            blurSpan.textContent = data.text;
+                            blurSpan.style.filter = "none";
                             readBtn.style.display = "none";
-                            setTimeout(async () => {
+                            
+                            const deleteBtn = document.createElement("button");
+                            deleteBtn.textContent = "Cancella subito";
+                            deleteBtn.className = "delete-msg-btn";
+                            msgEl.appendChild(deleteBtn);
+                            
+                            const deleteAction = async () => {
                                 msgEl.remove();
                                 try { await deleteDoc(doc(window.chpriv.db, "messages", roomId, "list", change.doc.id)); } catch (e) {}
-                            }, 3000);
+                            };
+                            
+                            deleteBtn.onclick = deleteAction;
+                            setTimeout(deleteAction, 10000); // 10 secondi
                         };
                     }
                     messagesDiv.appendChild(msgEl);
