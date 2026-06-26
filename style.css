@@ -103,3 +103,24 @@ header {
 #composer { display: flex; padding: 15px; background: #1e293b; gap: 10px; border-top: 1px solid #334155; }
 #messageInput { flex: 1; padding: 12px; border-radius: 10px; border: 1px solid #334155; background: #0f172a; color: white; }
 #sendBtn { background: #059669; color: white; padding: 0 25px; }
+.delete-msg-btn {
+    margin-top: 8px;
+    padding: 5px 10px;
+    background: #475569;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    font-size: 10px;
+    cursor: pointer;
+    align-self: flex-end;
+}
+.delete-msg-btn:hover { background: #ef4444; }
+.read-btn {
+    margin: 5px 0;
+    padding: 5px;
+    background: #0ea5e9;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+}
