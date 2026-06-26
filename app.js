@@ -54,12 +54,17 @@ async function startApp() {
             const presenceData = snapshot.val() || {};
             const users = Object.entries(presenceData);
             window.isChatPrivate = (users.length < 2);
-            const otherUser = users.find(([role, data]) => data.nickname.trim().toLowerCase() !== myNickname.trim().toLowerCase());
+            
+            const otherUser = users.find(([role, data]) => {
+                return data.nickname && data.nickname.trim().toLowerCase() !== myNickname.trim().toLowerCase();
+            });
             
             if (otherUser) {
+                // Connesso: "Connesso:" ROSSO, Nickname BIANCO
                 otherInfo.innerHTML = `<span class="status-connected">Connesso:</span> <span class="status-nickname">${otherUser[1].nickname}</span>`;
                 if (!document.title.includes("●")) document.title = "● " + originalTitle;
             } else {
+                // In attesa: "In attesa..." VERDE
                 otherInfo.innerHTML = `<span class="status-waiting">In attesa...</span>`;
                 document.title = originalTitle;
             }
@@ -111,7 +116,7 @@ async function startApp() {
                             };
                             
                             deleteBtn.onclick = deleteAction;
-                            setTimeout(deleteAction, 10000);
+                            setTimeout(deleteAction, 10000); // 10 secondi
                         };
                     }
                     messagesDiv.appendChild(msgEl);
