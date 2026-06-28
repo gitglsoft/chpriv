@@ -40,6 +40,8 @@ async function startApp() {
     }
 
     async function joinRoom(roomId, role, nickname) {
+        // Memorizziamo il ruolo locale per usarlo come filtro di sicurezza
+        window.myRole = role; 
         const roomRef = ref(window.chpriv.rtdb, `presence/${roomId}/${role}`);
         window.chpriv.onDisconnect(roomRef).remove(); 
         await window.chpriv.set(roomRef, { nickname, joinedAt: Date.now() });
@@ -54,18 +56,13 @@ async function startApp() {
             const presenceData = snapshot.val() || {};
             const users = Object.entries(presenceData);
             
-            // Logica di filtraggio per individuare l'altro utente
-            const otherUser = users.find(([role, data]) => {
-                const nicknameInDb = data && data.nickname ? data.nickname.trim().toLowerCase() : "";
-                const myNickNormalized = myNickname.trim().toLowerCase();
-                return nicknameInDb !== myNickNormalized && nicknameInDb !== "";
-            });
+            // FILTRO DI FERRO: Cerchiamo chiunque NON abbia il nostro ruolo (user1 vs user2)
+            const otherUser = users.find(([role, data]) => role !== window.myRole);
             
             window.isChatPrivate = (users.length < 2);
             
-            if (otherUser) {
-                const otherNickname = otherUser[1].nickname;
-                otherInfo.innerHTML = `<span class="status-connected">Connesso:</span> <span class="status-nickname">${otherNickname}</span>`;
+            if (otherUser && otherUser[1].nickname) {
+                otherInfo.innerHTML = `<span class="status-connected">Connesso:</span> <span class="status-nickname">${otherUser[1].nickname}</span>`;
             } else {
                 otherInfo.innerHTML = `<span class="status-waiting">In attesa...</span>`;
             }
