@@ -54,19 +54,18 @@ async function startApp() {
             const presenceData = snapshot.val() || {};
             const users = Object.entries(presenceData);
             
-            // Debug per capire cosa arriva dal DB
-            console.log("Utenti rilevati nel DB:", users);
-
+            // Logica di filtraggio per individuare l'altro utente
             const otherUser = users.find(([role, data]) => {
-                const nicknameInDb = data.nickname ? data.nickname.trim().toLowerCase() : "";
+                const nicknameInDb = data && data.nickname ? data.nickname.trim().toLowerCase() : "";
                 const myNickNormalized = myNickname.trim().toLowerCase();
-                return nicknameInDb !== myNickNormalized;
+                return nicknameInDb !== myNickNormalized && nicknameInDb !== "";
             });
             
             window.isChatPrivate = (users.length < 2);
             
             if (otherUser) {
-                otherInfo.innerHTML = `<span class="status-connected">Connesso:</span> <span class="status-nickname">${otherUser[1].nickname}</span>`;
+                const otherNickname = otherUser[1].nickname;
+                otherInfo.innerHTML = `<span class="status-connected">Connesso:</span> <span class="status-nickname">${otherNickname}</span>`;
             } else {
                 otherInfo.innerHTML = `<span class="status-waiting">In attesa...</span>`;
             }
