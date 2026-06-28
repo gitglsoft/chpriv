@@ -53,11 +53,17 @@ async function startApp() {
         window.chpriv.onValue(ref(window.chpriv.rtdb, `presence/${roomId}`), (snapshot) => {
             const presenceData = snapshot.val() || {};
             const users = Object.entries(presenceData);
-            window.isChatPrivate = (users.length < 2);
             
+            // Debug per capire cosa arriva dal DB
+            console.log("Utenti rilevati nel DB:", users);
+
             const otherUser = users.find(([role, data]) => {
-                return data.nickname && data.nickname.trim().toLowerCase() !== myNickname.trim().toLowerCase();
+                const nicknameInDb = data.nickname ? data.nickname.trim().toLowerCase() : "";
+                const myNickNormalized = myNickname.trim().toLowerCase();
+                return nicknameInDb !== myNickNormalized;
             });
+            
+            window.isChatPrivate = (users.length < 2);
             
             if (otherUser) {
                 otherInfo.innerHTML = `<span class="status-connected">Connesso:</span> <span class="status-nickname">${otherUser[1].nickname}</span>`;
@@ -66,7 +72,6 @@ async function startApp() {
             }
         });
 
-        // Reset titolo quando l'utente torna sulla finestra
         window.onfocus = () => { document.title = originalTitle; };
 
         onSnapshot(query(collection(window.chpriv.db, "messages", roomId, "list"), orderBy("createdAt")), (snapshot) => {
@@ -75,7 +80,6 @@ async function startApp() {
                     const data = change.doc.data();
                     const isMyMessage = (data.sender.trim().toLowerCase() === myNickname.trim().toLowerCase());
                     
-                    // Notifica titolo se la pagina non è in primo piano
                     if (!isMyMessage && document.hidden) {
                         document.title = "● Nuovo Messaggio!";
                     }
@@ -113,7 +117,7 @@ async function startApp() {
                             };
                             
                             deleteBtn.onclick = deleteAction;
-                            setTimeout(deleteAction, 10000); // 10 secondi
+                            setTimeout(deleteAction, 10000);
                         };
                     } else {
                         msgEl.innerHTML = `
