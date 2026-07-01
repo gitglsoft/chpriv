@@ -55,7 +55,6 @@ async function startApp() {
             const presenceData = snapshot.val() || {};
             const users = Object.entries(presenceData);
             
-            // "Filtro di ferro": prendiamo chiunque abbia un ruolo diverso dal nostro
             const otherUserEntry = users.find(([role, data]) => role !== window.myRole);
             
             window.isChatPrivate = (users.length < 2);
@@ -133,7 +132,13 @@ async function startApp() {
     emojiPicker.querySelectorAll('span').forEach(emoji => {
         emoji.onclick = () => { messageInput.value += emoji.textContent; emojiPicker.classList.add("hidden"); };
     });
-    clearBtn.onclick = async () => { const s = await getDocs(collection(window.chpriv.db, "messages", getRoomId(), "list")); s.forEach(async (d) => await deleteDoc(doc(window.chpriv.db, "messages", getRoomId(), "list", d.id))); messagesDiv.innerHTML = ""; alert("Chat svuotata!"); };
+    
+    clearBtn.onclick = async () => { 
+        const s = await getDocs(collection(window.chpriv.db, "messages", getRoomId(), "list")); 
+        s.forEach(async (d) => await deleteDoc(doc(window.chpriv.db, "messages", getRoomId(), "list", d.id))); 
+        messagesDiv.innerHTML = ""; 
+    };
+    
     copyLinkBtn.onclick = () => { navigator.clipboard.writeText(window.location.href); alert("Link copiato!"); };
     exitBtn.onclick = () => { window.location.hash = ""; window.location.reload(); };
 }
