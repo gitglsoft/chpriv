@@ -40,8 +40,7 @@ async function startApp() {
     }
 
     async function joinRoom(roomId, role, nickname) {
-        // Memorizziamo il ruolo locale per usarlo come filtro di sicurezza
-        window.myRole = role; 
+        window.myRole = role;
         const roomRef = ref(window.chpriv.rtdb, `presence/${roomId}/${role}`);
         window.chpriv.onDisconnect(roomRef).remove(); 
         await window.chpriv.set(roomRef, { nickname, joinedAt: Date.now() });
@@ -56,13 +55,14 @@ async function startApp() {
             const presenceData = snapshot.val() || {};
             const users = Object.entries(presenceData);
             
-            // FILTRO DI FERRO: Cerchiamo chiunque NON abbia il nostro ruolo (user1 vs user2)
-            const otherUser = users.find(([role, data]) => role !== window.myRole);
+            // "Filtro di ferro": prendiamo chiunque abbia un ruolo diverso dal nostro
+            const otherUserEntry = users.find(([role, data]) => role !== window.myRole);
             
             window.isChatPrivate = (users.length < 2);
             
-            if (otherUser && otherUser[1].nickname) {
-                otherInfo.innerHTML = `<span class="status-connected">Connesso:</span> <span class="status-nickname">${otherUser[1].nickname}</span>`;
+            if (otherUserEntry && otherUserEntry[1] && otherUserEntry[1].nickname) {
+                const otherNickname = otherUserEntry[1].nickname;
+                otherInfo.innerHTML = `<span class="status-connected">Connesso:</span> <span class="status-nickname">${otherNickname}</span>`;
             } else {
                 otherInfo.innerHTML = `<span class="status-waiting">In attesa...</span>`;
             }
@@ -93,25 +93,20 @@ async function startApp() {
                             <button class="read-btn">Leggi</button>
                             <span class="msg-time">${time}</span>
                         `;
-                        
                         const readBtn = msgEl.querySelector(".read-btn");
                         const blurSpan = msgEl.querySelector(".blur-text");
-                        
                         readBtn.onclick = () => {
                             blurSpan.textContent = data.text;
                             blurSpan.style.filter = "none";
                             readBtn.style.display = "none";
-                            
                             const deleteBtn = document.createElement("button");
                             deleteBtn.textContent = "Cancella subito";
                             deleteBtn.className = "delete-msg-btn";
                             msgEl.appendChild(deleteBtn);
-                            
                             const deleteAction = async () => {
                                 msgEl.remove();
                                 try { await deleteDoc(doc(window.chpriv.db, "messages", roomId, "list", change.doc.id)); } catch (e) {}
                             };
-                            
                             deleteBtn.onclick = deleteAction;
                             setTimeout(deleteAction, 10000);
                         };
@@ -134,12 +129,10 @@ async function startApp() {
     
     sendBtn.onclick = sendMessage;
     messageInput.onkeypress = (e) => { if (e.key === "Enter") sendMessage(); };
-    
     emojiBtn.onclick = () => emojiPicker.classList.toggle("hidden");
     emojiPicker.querySelectorAll('span').forEach(emoji => {
         emoji.onclick = () => { messageInput.value += emoji.textContent; emojiPicker.classList.add("hidden"); };
     });
-
     clearBtn.onclick = async () => { const s = await getDocs(collection(window.chpriv.db, "messages", getRoomId(), "list")); s.forEach(async (d) => await deleteDoc(doc(window.chpriv.db, "messages", getRoomId(), "list", d.id))); messagesDiv.innerHTML = ""; alert("Chat svuotata!"); };
     copyLinkBtn.onclick = () => { navigator.clipboard.writeText(window.location.href); alert("Link copiato!"); };
     exitBtn.onclick = () => { window.location.hash = ""; window.location.reload(); };
