@@ -16,25 +16,41 @@ button { cursor: pointer; border: none; padding: 12px 20px; border-radius: 10px;
 
 /* --- CHAT E MESSAGGI --- */
 #chatContainer { width: 100%; height: 100%; display: flex; flex-direction: column; background-color: #0f172a; }
-#messages { flex: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 15px; }
 
+/* --- HEADER E CONTROLLI SPOSTATI A DESTRA --- */
+header { 
+    display: flex; 
+    align-items: center; 
+    justify-content: space-between; 
+    padding: 15px 20px; 
+    background-color: #1e293b;
+    border-bottom: 1px solid #334155;
+}
+#otherInfo { color: #22c55e; font-weight: bold; } /* Verde per stato */
+.topButtons { display: flex; gap: 10px; margin-left: auto; } /* Forza i pulsanti a destra */
+.topButtons button { padding: 8px 15px; font-size: 12px; }
+#copyLinkBtn { background-color: #3b82f6; }
+#clearBtn { background-color: #f59e0b; }
+#exitBtn { background-color: #ef4444; }
+
+#messages { flex: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 15px; }
 .message { max-width: 70%; padding: 10px 14px; border-radius: 18px; position: relative; font-size: 15px; display: flex; flex-direction: column; gap: 4px; }
 .message.sent { align-self: flex-end; background-color: #0ea5e9; color: white; border-bottom-right-radius: 4px; }
 .message.received { align-self: flex-start; background-color: #f97316; color: white; border-bottom-left-radius: 4px; }
 
-/* --- EMOJI INGRANDITE (Solo nei messaggi) --- */
-.message .msg-text.emoji-only { 
+/* --- EMOJI INGRANDITE --- */
+.msg-text { word-wrap: break-word; color: white; }
+.emoji-only { 
     font-size: 3.5rem !important; 
     line-height: 1.2 !important; 
     background-color: transparent !important; 
     padding: 5px !important; 
     text-align: center; 
     display: block !important;
-    color: white !important;
+    color: white !important; 
 }
 
 /* --- ELEMENTI INTERNI --- */
-.msg-text { word-wrap: break-word; color: white; }
 .msg-sender { font-size: 10px; font-weight: bold; color: #e2e8f0; margin-bottom: 2px; }
 .msg-time { font-size: 9px; align-self: flex-end; color: #cbd5e1; margin-top: 4px; }
 .blur-text { filter: blur(5px); background-color: #ffffff22; color: white; padding: 2px 6px; border-radius: 4px; }
