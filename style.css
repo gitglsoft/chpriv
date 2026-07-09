@@ -11,32 +11,32 @@ button { cursor: pointer; border: none; padding: 12px 20px; border-radius: 10px;
 #btnCreateRoom { background-color: #059669; flex: 1; }
 #btnJoinRoom { background-color: #2563eb; flex: 1; }
 
+/* --- LOGHI (Dimensioni bloccate) --- */
+.main-logo, .header-logo { max-width: 100px; height: auto; display: block; margin: 0 auto; }
+
 /* --- CHAT E MESSAGGI --- */
 #chatContainer { width: 100%; height: 100%; display: flex; flex-direction: column; background-color: #0f172a; }
 #messages { flex: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 15px; }
 
-/* Basi Messaggi */
-.message { max-width: 75%; padding: 12px 16px; border-radius: 18px; position: relative; font-size: 15px; display: flex; flex-direction: column; gap: 4px; }
+.message { max-width: 70%; padding: 10px 14px; border-radius: 18px; position: relative; font-size: 15px; display: flex; flex-direction: column; gap: 4px; }
+.message.sent { align-self: flex-end; background-color: #0ea5e9; color: white; border-bottom-right-radius: 4px; }
+.message.received { align-self: flex-start; background-color: #f97316; color: white; border-bottom-left-radius: 4px; }
 
-/* Messaggi INVIATI - Elegante e contrastato */
-.message.sent { align-self: flex-end; background-color: #3b82f6; color: #ffffff; border-bottom-right-radius: 4px; }
-
-/* Messaggi RICEVUTI - Chiara leggibilità su scuro */
-.message.received { align-self: flex-start; background-color: #334155; color: #f1f5f9; border-bottom-left-radius: 4px; }
-
-/* --- EMOJI E TESTO --- */
-.msg-text { word-wrap: break-word; color: #ffffff; }
-.emoji-only { 
-    font-size: 3rem !important; 
+/* --- EMOJI INGRANDITE (Solo nei messaggi) --- */
+/* Il selettore .message .msg-text.emoji-only garantisce che non tocchi i loghi */
+.message .msg-text.emoji-only { 
+    font-size: 3.5rem !important; 
     line-height: 1.2 !important; 
     background-color: transparent !important; 
     padding: 5px !important; 
     text-align: center; 
     display: block !important;
+    color: white !important;
 }
 
 /* --- ELEMENTI INTERNI --- */
-.msg-sender { font-size: 10px; font-weight: bold; color: #94a3b8; margin-bottom: 2px; }
+.msg-text { word-wrap: break-word; color: white; }
+.msg-sender { font-size: 10px; font-weight: bold; color: #e2e8f0; margin-bottom: 2px; }
 .msg-time { font-size: 9px; align-self: flex-end; color: #cbd5e1; margin-top: 4px; }
 .blur-text { filter: blur(5px); background-color: #ffffff22; color: white; padding: 2px 6px; border-radius: 4px; }
 
@@ -46,4 +46,5 @@ button { cursor: pointer; border: none; padding: 12px 20px; border-radius: 10px;
 #sendBtn { background-color: #059669; padding: 0 25px; }
 #emojiPicker { position: absolute; bottom: 70px; left: 20px; background-color: #1e293b; padding: 10px; border-radius: 10px; border: 1px solid #334155; display: flex; flex-wrap: wrap; gap: 8px; width: calc(100% - 40px); z-index: 10; }
 #emojiPicker span { cursor: pointer; font-size: 20px; padding: 5px; }
-.read-btn { margin: 5px 0; padding: 5px; background-color: #3b82f6; color: white; border: none; border-radius: 6px; cursor: pointer; }
+.read-btn { margin: 5px 0; padding: 5px; background-color: #0ea5e9; color: white; border: none; border-radius: 6px; cursor: pointer; }
+.delete-msg-btn { margin-top: 8px; padding: 5px 10px; background-color: #475569; color: white; border: none; border-radius: 6px; font-size: 10px; cursor: pointer; align-self: flex-end; }
