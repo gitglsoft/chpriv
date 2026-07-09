@@ -1,1 +1,72 @@
+/* --- RESET E COLORI BASE --- */
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: 'Segoe UI', Arial, sans-serif; background-color: #0f172a; color: #f1f5f9; height: 100vh; display: flex; justify-content: center; align-items: center; }
+.hidden { display: none !important; }
 
+/* --- STARTUP SCREEN --- */
+#startup { width: 90%; max-width: 450px; padding: 30px; background-color: #1e293b; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.5); text-align: center; }
+#startup input { width: 100%; padding: 14px; margin-bottom: 12px; border: 1px solid #334155; border-radius: 10px; background-color: #0f172a; color: white; }
+.buttons { display: flex; gap: 10px; margin-top: 10px; }
+
+/* --- BOTTONI E LOGHI --- */
+button { cursor: pointer; border: none; padding: 12px 20px; border-radius: 10px; font-weight: 600; color: white; transition: 0.2s; }
+#btnCreateRoom { background-color: #059669; flex: 1; }
+#btnJoinRoom { background-color: #2563eb; flex: 1; }
+.main-logo { max-width: 100px; height: auto; display: block; margin: 0 auto 20px auto; }
+.header-logo { max-width: 60px; height: auto; }
+
+/* --- HEADER E CONTROLLI --- */
+header { 
+    display: flex; 
+    align-items: center; 
+    justify-content: space-between; 
+    padding: 15px 20px; 
+    background-color: #1e293b;
+    border-bottom: 1px solid #334155;
+    width: 100%;
+}
+#otherInfo { color: #22c55e; font-weight: bold; font-size: 14px; }
+.topButtons { display: flex; gap: 10px; margin-left: auto; }
+
+/* Pulsanti Header colorati */
+.topButtons button { padding: 8px 15px; font-size: 13px; color: white; border: none; border-radius: 6px; cursor: pointer; }
+#copyLinkBtn { background-color: #3b82f6; }
+#clearBtn { background-color: #f59e0b; }
+#exitBtn { background-color: #ef4444; }
+
+/* --- CHAT E MESSAGGI --- */
+#chatContainer { width: 100%; height: 100%; display: flex; flex-direction: column; background-color: #0f172a; }
+#messages { flex: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 15px; }
+
+.message { max-width: 70%; padding: 12px 16px; border-radius: 18px; position: relative; font-size: 15px; display: flex; flex-direction: column; gap: 4px; }
+.message.sent { align-self: flex-end; background-color: #0ea5e9; color: white; border-bottom-right-radius: 4px; }
+.message.received { align-self: flex-start; background-color: #f97316; color: white; border-bottom-left-radius: 4px; }
+
+/* --- EMOJI INGRANDITE (Solo nei messaggi) --- */
+.message .msg-text.emoji-only { 
+    font-size: 3rem !important; 
+    line-height: 1.2 !important; 
+    background-color: transparent !important; 
+    padding: 5px !important; 
+    text-align: center; 
+    display: block !important;
+    color: white !important;
+}
+
+/* --- ELEMENTI INTERNI --- */
+.msg-text { word-wrap: break-word; color: white; }
+.msg-sender { font-size: 10px; font-weight: bold; color: #e2e8f0; margin-bottom: 2px; }
+.msg-time { font-size: 9px; align-self: flex-end; color: #cbd5e1; margin-top: 4px; }
+.blur-text { filter: blur(5px); background-color: #ffffff22; color: white; padding: 2px 6px; border-radius: 4px; }
+
+/* --- COMPOSER & TOOLS --- */
+#composer { display: flex; padding: 15px; background-color: #1e293b; gap: 10px; border-top: 1px solid #334155; }
+#messageInput { flex: 1; padding: 12px; border-radius: 10px; border: 1px solid #334155; background-color: #0f172a; color: white; }
+#sendBtn { background-color: #059669; color: white; padding: 0 25px; border-radius: 10px; border: none; }
+#emojiBtn { background-color: #334155; color: white; padding: 0 15px; border-radius: 10px; border: none; }
+
+#emojiPicker { position: absolute; bottom: 70px; left: 20px; background-color: #1e293b; padding: 10px; border-radius: 10px; border: 1px solid #334155; display: flex; flex-wrap: wrap; gap: 8px; width: calc(100% - 40px); z-index: 10; }
+#emojiPicker span { cursor: pointer; font-size: 20px; padding: 5px; }
+
+.read-btn { margin: 5px 0; padding: 5px; background-color: #0ea5e9; color: white; border: none; border-radius: 6px; cursor: pointer; }
+.delete-msg-btn { margin-top: 8px; padding: 5px 10px; background-color: #475569; color: white; border: none; border-radius: 6px; font-size: 10px; cursor: pointer; align-self: flex-end; }
