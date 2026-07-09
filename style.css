@@ -7,11 +7,11 @@ body { font-family: 'Segoe UI', Arial, sans-serif; background-color: #0f172a; co
 #startup { width: 90%; max-width: 450px; padding: 30px; background-color: #1e293b; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.5); text-align: center; }
 #startup input { width: 100%; padding: 14px; margin-bottom: 12px; border: 1px solid #334155; border-radius: 10px; background-color: #0f172a; color: white; }
 .buttons { display: flex; gap: 10px; margin-top: 10px; }
+
+/* --- BOTTONI E LOGHI --- */
 button { cursor: pointer; border: none; padding: 12px 20px; border-radius: 10px; font-weight: 600; color: white; transition: 0.2s; }
 #btnCreateRoom { background-color: #059669; flex: 1; }
 #btnJoinRoom { background-color: #2563eb; flex: 1; }
-
-/* --- LOGHI (Dimensioni bloccate) --- */
 .main-logo, .header-logo { max-width: 100px; height: auto; display: block; margin: 0 auto; }
 
 /* --- CHAT E MESSAGGI --- */
@@ -23,7 +23,6 @@ button { cursor: pointer; border: none; padding: 12px 20px; border-radius: 10px;
 .message.received { align-self: flex-start; background-color: #f97316; color: white; border-bottom-left-radius: 4px; }
 
 /* --- EMOJI INGRANDITE (Solo nei messaggi) --- */
-/* Il selettore .message .msg-text.emoji-only garantisce che non tocchi i loghi */
 .message .msg-text.emoji-only { 
     font-size: 3.5rem !important; 
     line-height: 1.2 !important; 
