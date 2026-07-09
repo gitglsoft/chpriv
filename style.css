@@ -1,12 +1,23 @@
+/* --- VARIABILI GLOBALI --- */
+:root {
+    --bg-main: #0f172a;
+    --bg-card: #1e293b;
+    --sent-bg: #0ea5e9;
+    --sent-txt: #ffffff;
+    --recv-bg: #f97316;
+    --recv-txt: #ffffff;
+    --border: #334155;
+}
+
 /* --- BASE & RESET --- */
 * { margin: 0; padding: 0; box-sizing: border-box; }
-body { font-family: 'Segoe UI', Arial, sans-serif; background: #0f172a; color: #f1f5f9; height: 100vh; display: flex; justify-content: center; align-items: center; }
+body { font-family: 'Segoe UI', Arial, sans-serif; background: var(--bg-main); color: #f1f5f9; height: 100vh; display: flex; justify-content: center; align-items: center; }
 .hidden { display: none !important; }
 
 /* --- STARTUP SCREEN --- */
-#startup { width: 90%; max-width: 450px; padding: 30px; background: #1e293b; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.5); text-align: center; }
+#startup { width: 90%; max-width: 450px; padding: 30px; background: var(--bg-card); border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.5); text-align: center; }
 .main-logo { width: 100%; max-width: 300px; margin-bottom: 20px; display: block; margin-left: auto; margin-right: auto; }
-#startup input { width: 100%; padding: 14px; margin-bottom: 12px; border: 1px solid #334155; border-radius: 10px; background: #0f172a; color: white; }
+#startup input { width: 100%; padding: 14px; margin-bottom: 12px; border: 1px solid var(--border); border-radius: 10px; background: var(--bg-main); color: white; }
 
 .buttons { display: flex; gap: 10px; margin-top: 10px; }
 button { cursor: pointer; border: none; padding: 12px 20px; border-radius: 10px; font-weight: 600; transition: 0.2s; }
@@ -15,112 +26,47 @@ button:hover { transform: translateY(-2px); filter: brightness(1.1); }
 #btnJoinRoom { background: #2563eb; color: white; flex: 1; }
 
 /* --- CHAT CONTAINER --- */
-#chatContainer { width: 100%; height: 100%; display: flex; flex-direction: column; background: #0f172a; }
+#chatContainer { width: 100%; height: 100%; display: flex; flex-direction: column; background: var(--bg-main); }
 
-header { 
-    position: relative; 
-    background: #1e293b; 
-    padding: 10px 15px; 
-    display: flex; 
-    justify-content: space-between; 
-    align-items: center; 
-    border-bottom: 1px solid #334155; 
-    min-height: 60px; 
-}
-
-.header-logo {
-    height: 50px; 
-    width: auto;
-    position: absolute;
-    left: 50%;
-    transform: translateX(-50%);
-}
-
-@media (max-width: 600px) {
-    .header-logo { height: 40px; }
-}
-
+header { position: relative; background: var(--bg-card); padding: 10px 15px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); min-height: 60px; }
+.header-logo { height: 50px; width: auto; position: absolute; left: 50%; transform: translateX(-50%); }
 .topButtons { display: flex; gap: 10px; }
 #copyLinkBtn { background: #334155; color: white; }
 #clearBtn { background: #d97706; color: white; }
 #exitBtn { background: #ef4444; color: white; }
 
-/* --- STATUS COLORS (Aggiornati) --- */
-.status-waiting { color: #22c55e; } /* Verde per "In attesa" */
-.status-connected { color: #ef4444; } /* Rosso per "Connesso" */
-.status-nickname { color: #ffffff; font-weight: bold; } /* Bianco per il nome */
+/* --- STATUS COLORS --- */
+.status-waiting { color: #22c55e; }
+.status-connected { color: #ef4444; }
+.status-nickname { color: #ffffff; font-weight: bold; }
 
 /* --- MESSAGES AREA --- */
 #messages { flex: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 15px; }
 
-.message { 
-    max-width: 70%; 
-    padding: 10px 14px; 
-    border-radius: 18px; 
-    position: relative; 
-    font-size: 15px;
-    display: flex;
-    flex-direction: column; 
-    gap: 4px;
-}
+.message { max-width: 70%; padding: 10px 14px; border-radius: 18px; position: relative; font-size: 15px; display: flex; flex-direction: column; gap: 4px; }
+.message.sent { align-self: flex-end; background: var(--sent-bg); color: var(--sent-txt); border-bottom-right-radius: 4px; }
+.message.received { align-self: flex-start; background: var(--recv-bg); color: var(--recv-txt); border-bottom-left-radius: 4px; }
 
-.message.sent { align-self: flex-end; background: #0ea5e9; color: white; border-bottom-right-radius: 4px; }
-
-.message.received { 
-    align-self: flex-start; 
-    background: #f97316; 
-    color: #ffffff; 
-    font-style: italic; 
-    border-bottom-left-radius: 4px;
-}
-
-.message.received .msg-sender { color: #ffe4cc; }
-
-.msg-sender { font-size: 10px; font-weight: bold; opacity: 0.8; margin-bottom: 2px; }
+/* --- EMOJI & MESSAGES LOGIC --- */
 .msg-text { word-wrap: break-word; }
+.emoji-only { font-size: 2.5rem; background: transparent !important; padding: 5px; } /* Ingrandisce le emoji */
+.msg-sender { font-size: 10px; font-weight: bold; opacity: 0.8; margin-bottom: 2px; }
+.message.received .msg-sender { color: #ffe4cc; }
 .msg-time { font-size: 9px; align-self: flex-end; opacity: 0.7; margin-top: 4px; }
 .blur-text { filter: blur(5px); background: #ffffff11; padding: 2px 6px; border-radius: 4px; }
 
-/* --- EMOJI & COMPOSER --- */
-#emojiPicker {
-    position: absolute;
-    bottom: 70px;
-    left: 20px;
-    background: #1e293b;
-    padding: 10px;
-    border-radius: 10px;
-    border: 1px solid #334155;
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-    width: calc(100% - 40px);
-    z-index: 10;
-}
+/* --- COMPOSER & TOOLS --- */
+#emojiPicker { position: absolute; bottom: 70px; left: 20px; background: var(--bg-card); padding: 10px; border-radius: 10px; border: 1px solid var(--border); display: flex; flex-wrap: wrap; gap: 8px; width: calc(100% - 40px); z-index: 10; }
 #emojiPicker span { cursor: pointer; font-size: 20px; padding: 5px; }
 #emojiPicker.hidden { display: none; }
 #emojiBtn { background: #475569; color: white; padding: 0 15px; }
 
-#composer { display: flex; padding: 15px; background: #1e293b; gap: 10px; border-top: 1px solid #334155; }
-#messageInput { flex: 1; padding: 12px; border-radius: 10px; border: 1px solid #334155; background: #0f172a; color: white; }
+#composer { display: flex; padding: 15px; background: var(--bg-card); gap: 10px; border-top: 1px solid var(--border); }
+#messageInput { flex: 1; padding: 12px; border-radius: 10px; border: 1px solid var(--border); background: var(--bg-main); color: white; }
 #sendBtn { background: #059669; color: white; padding: 0 25px; }
-.delete-msg-btn {
-    margin-top: 8px;
-    padding: 5px 10px;
-    background: #475569;
-    color: white;
-    border: none;
-    border-radius: 6px;
-    font-size: 10px;
-    cursor: pointer;
-    align-self: flex-end;
-}
+
+.delete-msg-btn { margin-top: 8px; padding: 5px 10px; background: #475569; color: white; border: none; border-radius: 6px; font-size: 10px; cursor: pointer; align-self: flex-end; }
 .delete-msg-btn:hover { background: #ef4444; }
-.read-btn {
-    margin: 5px 0;
-    padding: 5px;
-    background: #0ea5e9;
-    color: white;
-    border: none;
-    border-radius: 6px;
-    cursor: pointer;
-}
+.read-btn { margin: 5px 0; padding: 5px; background: var(--sent-bg); color: white; border: none; border-radius: 6px; cursor: pointer; }
+
+@media (max-width: 600px) { .header-logo { height: 40px; } }
