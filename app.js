@@ -22,6 +22,13 @@ async function startApp() {
 
     const originalTitle = document.title;
     const generateCustomId = () => `${Math.floor(100 + Math.random() * 900)}${String.fromCharCode(97 + Math.floor(Math.random() * 26))}`;
+    
+    // Helper per verificare se il testo contiene SOLO emoji
+    const isOnlyEmoji = (text) => {
+        const emojiRegex = /^(\u00a9|\u00ae|[\u2000-\u3300]|\ud83c[\ud000-\udfff]|\ud83d[\ud000-\udfff]|\ud83e[\ud000-\udfff]|\s)+$/u;
+        return emojiRegex.test(text.trim());
+    };
+
     const getRoomId = () => {
         let roomId = window.location.hash.split("#room=")[1];
         if (!roomId) { roomId = localStorage.getItem("myRoomId") || generateCustomId(); localStorage.setItem("myRoomId", roomId); }
@@ -54,14 +61,12 @@ async function startApp() {
         window.chpriv.onValue(ref(window.chpriv.rtdb, `presence/${roomId}`), (snapshot) => {
             const presenceData = snapshot.val() || {};
             const users = Object.entries(presenceData);
-            
             const otherUserEntry = users.find(([role, data]) => role !== window.myRole);
             
             window.isChatPrivate = (users.length < 2);
             
-            if (otherUserEntry && otherUserEntry[1] && otherUserEntry[1].nickname) {
-                const otherNickname = otherUserEntry[1].nickname;
-                otherInfo.innerHTML = `<span class="status-connected">Connesso:</span> <span class="status-nickname">${otherNickname}</span>`;
+            if (otherUserEntry && otherUserEntry[1]?.nickname) {
+                otherInfo.innerHTML = `<span class="status-connected">Connesso:</span> <span class="status-nickname">${otherUserEntry[1].nickname}</span>`;
             } else {
                 otherInfo.innerHTML = `<span class="status-waiting">In attesa...</span>`;
             }
@@ -75,9 +80,7 @@ async function startApp() {
                     const data = change.doc.data();
                     const isMyMessage = (data.sender.trim().toLowerCase() === myNickname.trim().toLowerCase());
                     
-                    if (!isMyMessage && document.hidden) {
-                        document.title = "● Nuovo Messaggio!";
-                    }
+                    if (!isMyMessage && document.hidden) document.title = "● Nuovo Messaggio!";
 
                     const dateObj = data.createdAt ? data.createdAt.toDate() : new Date();
                     const time = dateObj.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
@@ -85,10 +88,13 @@ async function startApp() {
                     const msgEl = document.createElement("div");
                     msgEl.className = `message ${isMyMessage ? 'sent' : 'received'}`;
                     
+                    // Verifica se il messaggio è composto solo da emoji
+                    const emojiClass = isOnlyEmoji(data.text) ? ' emoji-only' : '';
+
                     if (window.isChatPrivate && !isMyMessage) {
                         msgEl.innerHTML = `
                             <span class="msg-sender">${data.sender}</span>
-                            <span class="blur-text">[Criptato]</span>
+                            <span class="blur-text">Messaggio criptato</span>
                             <button class="read-btn">Leggi</button>
                             <span class="msg-time">${time}</span>
                         `;
@@ -96,6 +102,7 @@ async function startApp() {
                         const blurSpan = msgEl.querySelector(".blur-text");
                         readBtn.onclick = () => {
                             blurSpan.textContent = data.text;
+                            blurSpan.className = 'msg-text' + emojiClass; // Applica classe emoji se necessario
                             blurSpan.style.filter = "none";
                             readBtn.style.display = "none";
                             const deleteBtn = document.createElement("button");
@@ -112,7 +119,7 @@ async function startApp() {
                     } else {
                         msgEl.innerHTML = `
                             <span class="msg-sender">${isMyMessage ? "Tu" : data.sender}</span>
-                            <span class="msg-text">${data.text}</span>
+                            <span class="msg-text${emojiClass}">${data.text}</span>
                             <span class="msg-time">${time}</span>
                         `;
                     }
