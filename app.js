@@ -20,7 +20,6 @@ async function startApp() {
           emojiBtn = document.getElementById("emojiBtn"),
           emojiPicker = document.getElementById("emojiPicker");
 
-    const originalTitle = document.title;
     const generateCustomId = () => `${Math.floor(100 + Math.random() * 900)}${String.fromCharCode(97 + Math.floor(Math.random() * 26))}`;
     
     const isOnlyEmoji = (text) => {
@@ -60,13 +59,9 @@ async function startApp() {
         window.chpriv.onValue(ref(window.chpriv.rtdb, `presence/${roomId}`), (snapshot) => {
             const presenceData = snapshot.val() || {};
             const users = Object.entries(presenceData);
-            const otherUserEntry = users.find(([role, data]) => role !== window.myRole);
             window.isChatPrivate = (users.length < 2);
-            if (otherUserEntry && otherUserEntry[1]?.nickname) {
-                otherInfo.innerHTML = `<span class="status-connected">Connesso:</span> <span class="status-nickname">${otherUserEntry[1].nickname}</span>`;
-            } else {
-                otherInfo.innerHTML = `<span class="status-waiting">In attesa...</span>`;
-            }
+            const otherUserEntry = users.find(([role, data]) => role !== window.myRole);
+            otherInfo.innerHTML = otherUserEntry ? `<span class="status-nickname">Chat con: ${otherUserEntry[1].nickname}</span>` : `<span class="status-waiting">In attesa...</span>`;
         });
 
         onSnapshot(query(collection(window.chpriv.db, "messages", roomId, "list"), orderBy("createdAt")), (snapshot) => {
@@ -80,26 +75,15 @@ async function startApp() {
                     msgEl.className = `message ${isMyMessage ? 'sent' : 'received'}`;
                     
                     if (window.isChatPrivate && !isMyMessage) {
-                        msgEl.innerHTML = `
-                            <span class="msg-sender">${data.sender}</span>
-                            <span class="blur-text">Messaggio criptato</span>
-                            <button class="read-btn">Leggi</button>
-                            <span class="msg-time">${time}</span>
-                        `;
+                        msgEl.innerHTML = `<span class="msg-sender">${data.sender}</span><span class="blur-text">Messaggio criptato</span><button class="read-btn">Leggi</button><span class="msg-time">${time}</span>`;
                         msgEl.querySelector(".read-btn").onclick = (e) => {
                             const blurSpan = e.target.previousElementSibling;
                             blurSpan.textContent = data.text;
                             blurSpan.className = 'msg-text' + (isOnlyEmoji(data.text) ? ' emoji-only' : '');
-                            blurSpan.style.filter = "none";
                             e.target.remove();
                         };
                     } else {
-                        const extraClass = isOnlyEmoji(data.text) ? ' emoji-only' : '';
-                        msgEl.innerHTML = `
-                            <span class="msg-sender">${isMyMessage ? "Tu" : data.sender}</span>
-                            <span class="msg-text${extraClass}">${data.text}</span>
-                            <span class="msg-time">${time}</span>
-                        `;
+                        msgEl.innerHTML = `<span class="msg-sender">${isMyMessage ? "Tu" : data.sender}</span><span class="msg-text${isOnlyEmoji(data.text) ? ' emoji-only' : ''}">${data.text}</span><span class="msg-time">${time}</span>`;
                     }
                     messagesDiv.appendChild(msgEl);
                     messagesDiv.scrollTop = messagesDiv.scrollHeight;
@@ -110,20 +94,11 @@ async function startApp() {
 
     btnCreateRoom.onclick = async () => { if(!nicknameInput.value.trim()) return alert("Inserisci nickname!"); const id = generateCustomId(); localStorage.setItem("myRoomId", id); await joinRoom(id, "user1", nicknameInput.value.trim()); };
     btnJoinRoom.onclick = async () => { if(!nicknameInput.value.trim()) return alert("Inserisci nickname!"); const id = getRoomId(); const s = await window.chpriv.get(ref(window.chpriv.rtdb, `presence/${id}`)); const d = s.exists() ? s.val() : {}; await joinRoom(id, !d.user1 ? "user1" : "user2", nicknameInput.value.trim()); };
-    
     sendBtn.onclick = sendMessage;
     messageInput.onkeypress = (e) => { if (e.key === "Enter") sendMessage(); };
     emojiBtn.onclick = () => emojiPicker.classList.toggle("hidden");
-    emojiPicker.querySelectorAll('span').forEach(emoji => {
-        emoji.onclick = () => { messageInput.value += emoji.textContent; emojiPicker.classList.add("hidden"); };
-    });
-    
-    clearBtn.onclick = async () => { 
-        const s = await getDocs(collection(window.chpriv.db, "messages", getRoomId(), "list")); 
-        s.forEach(async (d) => await deleteDoc(doc(window.chpriv.db, "messages", getRoomId(), "list", d.id))); 
-        messagesDiv.innerHTML = ""; 
-    };
-    
+    emojiPicker.querySelectorAll('span').forEach(emoji => { emoji.onclick = () => { messageInput.value += emoji.textContent; emojiPicker.classList.add("hidden"); }; });
+    clearBtn.onclick = async () => { const s = await getDocs(collection(window.chpriv.db, "messages", getRoomId(), "list")); s.forEach(async (d) => await deleteDoc(doc(window.chpriv.db, "messages", getRoomId(), "list", d.id))); messagesDiv.innerHTML = ""; };
     copyLinkBtn.onclick = () => { navigator.clipboard.writeText(window.location.href); alert("Link copiato!"); };
     exitBtn.onclick = () => { window.location.hash = ""; window.location.reload(); };
 }
