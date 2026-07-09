@@ -1,4 +1,4 @@
-/* --- VARIABILI GLOBALI --- */
+*/
 :root {
     --bg-main: #0f172a;
     --bg-card: #1e293b;
@@ -27,7 +27,6 @@ button:hover { transform: translateY(-2px); filter: brightness(1.1); }
 
 /* --- CHAT CONTAINER --- */
 #chatContainer { width: 100%; height: 100%; display: flex; flex-direction: column; background: var(--bg-main); }
-
 header { position: relative; background: var(--bg-card); padding: 10px 15px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); min-height: 60px; }
 .header-logo { height: 50px; width: auto; position: absolute; left: 50%; transform: translateX(-50%); }
 .topButtons { display: flex; gap: 10px; }
@@ -35,21 +34,15 @@ header { position: relative; background: var(--bg-card); padding: 10px 15px; dis
 #clearBtn { background: #d97706; color: white; }
 #exitBtn { background: #ef4444; color: white; }
 
-/* --- STATUS COLORS --- */
-.status-waiting { color: #22c55e; }
-.status-connected { color: #ef4444; }
-.status-nickname { color: #ffffff; font-weight: bold; }
-
 /* --- MESSAGES AREA --- */
 #messages { flex: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 15px; }
-
 .message { max-width: 70%; padding: 10px 14px; border-radius: 18px; position: relative; font-size: 15px; display: flex; flex-direction: column; gap: 4px; }
 .message.sent { align-self: flex-end; background: var(--sent-bg); color: var(--sent-txt); border-bottom-right-radius: 4px; }
 .message.received { align-self: flex-start; background: var(--recv-bg); color: var(--recv-txt); border-bottom-left-radius: 4px; }
 
-/* --- EMOJI & MESSAGES LOGIC --- */
+/* --- EMOJI & TESTO --- */
 .msg-text { word-wrap: break-word; }
-.emoji-only { font-size: 2.5rem; background: transparent !important; padding: 5px; } /* Ingrandisce le emoji */
+.emoji-only { font-size: 3.5rem !important; line-height: 1 !important; background: transparent !important; padding: 5px !important; text-align: center; }
 .msg-sender { font-size: 10px; font-weight: bold; opacity: 0.8; margin-bottom: 2px; }
 .message.received .msg-sender { color: #ffe4cc; }
 .msg-time { font-size: 9px; align-self: flex-end; opacity: 0.7; margin-top: 4px; }
@@ -60,13 +53,10 @@ header { position: relative; background: var(--bg-card); padding: 10px 15px; dis
 #emojiPicker span { cursor: pointer; font-size: 20px; padding: 5px; }
 #emojiPicker.hidden { display: none; }
 #emojiBtn { background: #475569; color: white; padding: 0 15px; }
-
 #composer { display: flex; padding: 15px; background: var(--bg-card); gap: 10px; border-top: 1px solid var(--border); }
 #messageInput { flex: 1; padding: 12px; border-radius: 10px; border: 1px solid var(--border); background: var(--bg-main); color: white; }
 #sendBtn { background: #059669; color: white; padding: 0 25px; }
 
 .delete-msg-btn { margin-top: 8px; padding: 5px 10px; background: #475569; color: white; border: none; border-radius: 6px; font-size: 10px; cursor: pointer; align-self: flex-end; }
-.delete-msg-btn:hover { background: #ef4444; }
 .read-btn { margin: 5px 0; padding: 5px; background: var(--sent-bg); color: white; border: none; border-radius: 6px; cursor: pointer; }
-
 @media (max-width: 600px) { .header-logo { height: 40px; } }
