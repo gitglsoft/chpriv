@@ -23,7 +23,6 @@ async function startApp() {
     const originalTitle = document.title;
     const generateCustomId = () => `${Math.floor(100 + Math.random() * 900)}${String.fromCharCode(97 + Math.floor(Math.random() * 26))}`;
     
-    // Helper per verificare se il testo contiene SOLO emoji
     const isOnlyEmoji = (text) => {
         const emojiRegex = /^(\u00a9|\u00ae|[\u2000-\u3300]|\ud83c[\ud000-\udfff]|\ud83d[\ud000-\udfff]|\ud83e[\ud000-\udfff]|\s)+$/u;
         return emojiRegex.test(text.trim());
@@ -62,9 +61,7 @@ async function startApp() {
             const presenceData = snapshot.val() || {};
             const users = Object.entries(presenceData);
             const otherUserEntry = users.find(([role, data]) => role !== window.myRole);
-            
             window.isChatPrivate = (users.length < 2);
-            
             if (otherUserEntry && otherUserEntry[1]?.nickname) {
                 otherInfo.innerHTML = `<span class="status-connected">Connesso:</span> <span class="status-nickname">${otherUserEntry[1].nickname}</span>`;
             } else {
@@ -72,25 +69,16 @@ async function startApp() {
             }
         });
 
-        window.onfocus = () => { document.title = originalTitle; };
-
         onSnapshot(query(collection(window.chpriv.db, "messages", roomId, "list"), orderBy("createdAt")), (snapshot) => {
             snapshot.docChanges().forEach((change) => {
                 if (change.type === "added") {
                     const data = change.doc.data();
                     const isMyMessage = (data.sender.trim().toLowerCase() === myNickname.trim().toLowerCase());
+                    const time = data.createdAt ? data.createdAt.toDate().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : "";
                     
-                    if (!isMyMessage && document.hidden) document.title = "● Nuovo Messaggio!";
-
-                    const dateObj = data.createdAt ? data.createdAt.toDate() : new Date();
-                    const time = dateObj.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-
                     const msgEl = document.createElement("div");
                     msgEl.className = `message ${isMyMessage ? 'sent' : 'received'}`;
                     
-                    // Verifica se il messaggio è composto solo da emoji
-                    const emojiClass = isOnlyEmoji(data.text) ? ' emoji-only' : '';
-
                     if (window.isChatPrivate && !isMyMessage) {
                         msgEl.innerHTML = `
                             <span class="msg-sender">${data.sender}</span>
@@ -98,28 +86,18 @@ async function startApp() {
                             <button class="read-btn">Leggi</button>
                             <span class="msg-time">${time}</span>
                         `;
-                        const readBtn = msgEl.querySelector(".read-btn");
-                        const blurSpan = msgEl.querySelector(".blur-text");
-                        readBtn.onclick = () => {
+                        msgEl.querySelector(".read-btn").onclick = (e) => {
+                            const blurSpan = e.target.previousElementSibling;
                             blurSpan.textContent = data.text;
-                            blurSpan.className = 'msg-text' + emojiClass; // Applica classe emoji se necessario
+                            blurSpan.className = 'msg-text' + (isOnlyEmoji(data.text) ? ' emoji-only' : '');
                             blurSpan.style.filter = "none";
-                            readBtn.style.display = "none";
-                            const deleteBtn = document.createElement("button");
-                            deleteBtn.textContent = "Cancella subito";
-                            deleteBtn.className = "delete-msg-btn";
-                            msgEl.appendChild(deleteBtn);
-                            const deleteAction = async () => {
-                                msgEl.remove();
-                                try { await deleteDoc(doc(window.chpriv.db, "messages", roomId, "list", change.doc.id)); } catch (e) {}
-                            };
-                            deleteBtn.onclick = deleteAction;
-                            setTimeout(deleteAction, 10000);
+                            e.target.remove();
                         };
                     } else {
+                        const extraClass = isOnlyEmoji(data.text) ? ' emoji-only' : '';
                         msgEl.innerHTML = `
                             <span class="msg-sender">${isMyMessage ? "Tu" : data.sender}</span>
-                            <span class="msg-text${emojiClass}">${data.text}</span>
+                            <span class="msg-text${extraClass}">${data.text}</span>
                             <span class="msg-time">${time}</span>
                         `;
                     }
