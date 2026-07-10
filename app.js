@@ -22,6 +22,7 @@ async function startApp() {
 
     const generateCustomId = () => `${Math.floor(100 + Math.random() * 900)}${String.fromCharCode(97 + Math.floor(Math.random() * 26))}`;
     
+    // Regex migliorato per intercettare meglio le singole emoji
     const isOnlyEmoji = (text) => {
         const emojiRegex = /^(\u00a9|\u00ae|[\u2000-\u3300]|\ud83c[\ud000-\udfff]|\ud83d[\ud000-\udfff]|\ud83e[\ud000-\udfff]|\s)+$/u;
         return emojiRegex.test(text.trim());
@@ -74,16 +75,20 @@ async function startApp() {
                     const msgEl = document.createElement("div");
                     msgEl.className = `message ${isMyMessage ? 'sent' : 'received'}`;
                     
+                    // Applichiamo la classe solo se è emoji, mantenendo msg-text come base
+                    const emojiClass = isOnlyEmoji(data.text) ? ' emoji-only' : '';
+                    
                     if (window.isChatPrivate && !isMyMessage) {
                         msgEl.innerHTML = `<span class="msg-sender">${data.sender}</span><span class="blur-text">Messaggio criptato</span><button class="read-btn">Leggi</button><span class="msg-time">${time}</span>`;
                         msgEl.querySelector(".read-btn").onclick = (e) => {
                             const blurSpan = e.target.previousElementSibling;
                             blurSpan.textContent = data.text;
                             blurSpan.className = 'msg-text' + (isOnlyEmoji(data.text) ? ' emoji-only' : '');
+                            blurSpan.style.filter = "none";
                             e.target.remove();
                         };
                     } else {
-                        msgEl.innerHTML = `<span class="msg-sender">${isMyMessage ? "Tu" : data.sender}</span><span class="msg-text${isOnlyEmoji(data.text) ? ' emoji-only' : ''}">${data.text}</span><span class="msg-time">${time}</span>`;
+                        msgEl.innerHTML = `<span class="msg-sender">${isMyMessage ? "Tu" : data.sender}</span><span class="msg-text${emojiClass}">${data.text}</span><span class="msg-time">${time}</span>`;
                     }
                     messagesDiv.appendChild(msgEl);
                     messagesDiv.scrollTop = messagesDiv.scrollHeight;
@@ -94,11 +99,20 @@ async function startApp() {
 
     btnCreateRoom.onclick = async () => { if(!nicknameInput.value.trim()) return alert("Inserisci nickname!"); const id = generateCustomId(); localStorage.setItem("myRoomId", id); await joinRoom(id, "user1", nicknameInput.value.trim()); };
     btnJoinRoom.onclick = async () => { if(!nicknameInput.value.trim()) return alert("Inserisci nickname!"); const id = getRoomId(); const s = await window.chpriv.get(ref(window.chpriv.rtdb, `presence/${id}`)); const d = s.exists() ? s.val() : {}; await joinRoom(id, !d.user1 ? "user1" : "user2", nicknameInput.value.trim()); };
+    
     sendBtn.onclick = sendMessage;
     messageInput.onkeypress = (e) => { if (e.key === "Enter") sendMessage(); };
     emojiBtn.onclick = () => emojiPicker.classList.toggle("hidden");
-    emojiPicker.querySelectorAll('span').forEach(emoji => { emoji.onclick = () => { messageInput.value += emoji.textContent; emojiPicker.classList.add("hidden"); }; });
-    clearBtn.onclick = async () => { const s = await getDocs(collection(window.chpriv.db, "messages", getRoomId(), "list")); s.forEach(async (d) => await deleteDoc(doc(window.chpriv.db, "messages", getRoomId(), "list", d.id))); messagesDiv.innerHTML = ""; };
+    emojiPicker.querySelectorAll('span').forEach(emoji => {
+        emoji.onclick = () => { messageInput.value += emoji.textContent; emojiPicker.classList.add("hidden"); };
+    });
+    
+    clearBtn.onclick = async () => { 
+        const s = await getDocs(collection(window.chpriv.db, "messages", getRoomId(), "list")); 
+        s.forEach(async (d) => await deleteDoc(doc(window.chpriv.db, "messages", getRoomId(), "list", d.id))); 
+        messagesDiv.innerHTML = ""; 
+    };
+    
     copyLinkBtn.onclick = () => { navigator.clipboard.writeText(window.location.href); alert("Link copiato!"); };
     exitBtn.onclick = () => { window.location.hash = ""; window.location.reload(); };
 }
