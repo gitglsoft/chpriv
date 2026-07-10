@@ -1,57 +1,38 @@
-/* --- RESET BASE --- */
 * { margin: 0; padding: 0; box-sizing: border-box; }
 body { font-family: 'Segoe UI', Arial, sans-serif; background-color: #0f172a; color: #f1f5f9; height: 100vh; display: flex; justify-content: center; align-items: center; }
 .hidden { display: none !important; }
 
-/* --- STARTUP SCREEN --- */
-#startup { width: 90%; max-width: 450px; padding: 30px; background-color: #1e293b; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.5); text-align: center; }
-#startup .main-logo { max-width: 150px; height: auto; display: block; margin: 0 auto 20px auto; }
-#startup input { width: 100%; padding: 14px; margin-bottom: 12px; border: 1px solid #334155; border-radius: 10px; background-color: #0f172a; color: white; }
-.buttons { display: flex; gap: 10px; margin-top: 10px; }
-button { cursor: pointer; border: none; padding: 12px 20px; border-radius: 10px; font-weight: 600; color: white; transition: 0.2s; }
+/* Login */
+#startup { width: 90%; max-width: 450px; padding: 30px; background-color: #1e293b; border-radius: 20px; text-align: center; }
+#startup .main-logo { max-width: 150px; margin-bottom: 20px; }
+#startup input { width: 100%; padding: 14px; margin-bottom: 12px; border-radius: 10px; background-color: #0f172a; color: white; border: 1px solid #334155; }
+.buttons { display: flex; gap: 10px; }
+button { cursor: pointer; padding: 12px 20px; border-radius: 10px; font-weight: 600; color: white; border: none; }
 #btnCreateRoom { background-color: #059669; flex: 1; }
 #btnJoinRoom { background-color: #2563eb; flex: 1; }
 
-/* --- HEADER E LOGO --- */
-header { display: flex; align-items: center; justify-content: space-between; padding: 10px 20px; background-color: #1e293b; border-bottom: 1px solid #334155; width: 100%; height: 60px; }
-#otherInfo { color: #22c55e; font-weight: bold; font-size: 14px; }
-.header-logo { height: 40px; width: auto; }
-
-/* Pulsanti Header */
-.topButtons { display: flex; gap: 8px; }
-.topButtons button { padding: 6px 12px; font-size: 12px; border-radius: 6px; border: none; cursor: pointer; color: white; font-weight: bold; }
+/* Chat Header */
+#chatContainer { width: 100%; height: 100%; display: flex; flex-direction: column; background-color: #0f172a; }
+header { display: flex; align-items: center; justify-content: space-between; padding: 10px 20px; background-color: #1e293b; height: 60px; position: relative; }
+.header-logo { height: 40px; position: absolute; left: 50%; transform: translateX(-50%); }
+#otherInfo { color: #22c55e; font-weight: bold; z-index: 2; }
+.topButtons { display: flex; gap: 8px; z-index: 2; }
+.topButtons button { padding: 6px 12px; font-size: 12px; border-radius: 6px; }
 #copyLinkBtn { background-color: #3b82f6 !important; }
 #clearBtn { background-color: #f59e0b !important; }
 #exitBtn { background-color: #ef4444 !important; }
 
-/* --- MESSAGGI --- */
-#chatContainer { width: 100%; height: 100%; display: flex; flex-direction: column; background-color: #0f172a; }
+/* Messaggi */
 #messages { flex: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 15px; }
+.message { max-width: 70%; padding: 10px 14px; border-radius: 18px; }
+.message.sent { align-self: flex-end; background-color: #0ea5e9; }
+.message.received { align-self: flex-start; background-color: #f97316; }
 
-.message { max-width: 70%; padding: 10px 14px; border-radius: 18px; position: relative; font-size: 15px; }
-.message.sent { align-self: flex-end; background-color: #0ea5e9; color: white; }
-.message.received { align-self: flex-start; background-color: #f97316; color: white; }
+/* Emoji Ingrandite solo in chat */
+.message .msg-text.emoji-only { font-size: 5rem !important; display: block !important; text-align: center !important; padding: 10px 0 !important; }
+/* Emoji barra sempre piccole */
+#emojiPicker span { font-size: 24px !important; cursor: pointer; padding: 5px; display: inline-block; }
 
-/* EMOJI NEI MESSAGGI (Grande) */
-.message .msg-text.emoji-only { 
-    font-size: 4rem !important; 
-    line-height: 1 !important; 
-    padding: 10px 0 !important; 
-    display: block !important; 
-    text-align: center !important; 
-}
-
-/* EMOJI NELLA BARRA (Piccola) */
-#emojiPicker span { cursor: pointer; font-size: 20px !important; padding: 5px; }
-
-.msg-text { word-wrap: break-word; color: white; }
-.msg-sender { font-size: 10px; font-weight: bold; display: block; margin-bottom: 2px; }
-.msg-time { font-size: 9px; align-self: flex-end; color: #cbd5e1; margin-top: 4px; }
-
-/* --- COMPOSER --- */
-#composer { display: flex; padding: 15px; background-color: #1e293b; gap: 10px; border-top: 1px solid #334155; }
-#messageInput { flex: 1; padding: 12px; border-radius: 10px; border: 1px solid #334155; background-color: #0f172a; color: white; }
-#sendBtn { background-color: #059669; padding: 0 25px; border-radius: 10px; color: white; }
-#emojiBtn { background: none; border: none; font-size: 24px; cursor: pointer; }
-
-#emojiPicker { position: absolute; bottom: 70px; left: 20px; background-color: #1e293b; padding: 10px; border-radius: 10px; border: 1px solid #334155; display: flex; flex-wrap: wrap; gap: 8px; width: calc(100% - 40px); z-index: 10; }
+#composer { display: flex; padding: 15px; background-color: #1e293b; gap: 10px; }
+#messageInput { flex: 1; padding: 12px; border-radius: 10px; background-color: #0f172a; color: white; border: 1px solid #334155; }
+#sendBtn { background-color: #059669; padding: 0 25px; }
