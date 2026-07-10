@@ -36,3 +36,11 @@ header { display: flex; align-items: center; justify-content: space-between; pad
 #composer { display: flex; padding: 15px; background-color: #1e293b; gap: 10px; }
 #messageInput { flex: 1; padding: 12px; border-radius: 10px; background-color: #0f172a; color: white; border: 1px solid #334155; }
 #sendBtn { background-color: #059669; padding: 0 25px; }
+/* Assicurati che questo sia presente nel tuo style.css */
+.msg-time { 
+    display: block !important; 
+    font-size: 10px !important; 
+    color: #cbd5e1 !important; 
+    text-align: right !important; 
+    margin-top: 5px !important; 
+}
