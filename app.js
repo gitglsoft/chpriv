@@ -4,7 +4,20 @@ import { initFirebase } from "./firebase.js";
 
 async function startApp() {
     await initFirebase();
-    const startupDiv = document.getElementById("startup"), chatContainer = document.getElementById("chatContainer"), nicknameInput = document.getElementById("nickname"), btnCreateRoom = document.getElementById("btnCreateRoom"), btnJoinRoom = document.getElementById("btnJoinRoom"), messageInput = document.getElementById("messageInput"), sendBtn = document.getElementById("sendBtn"), messagesDiv = document.getElementById("messages"), copyLinkBtn = document.getElementById("copyLinkBtn"), exitBtn = document.getElementById("exitBtn"), clearBtn = document.getElementById("clearBtn"), otherInfo = document.getElementById("otherInfo"), emojiBtn = document.getElementById("emojiBtn"), emojiPicker = document.getElementById("emojiPicker");
+    const startupDiv = document.getElementById("startup"), 
+          chatContainer = document.getElementById("chatContainer"), 
+          nicknameInput = document.getElementById("nickname"), 
+          btnCreateRoom = document.getElementById("btnCreateRoom"), 
+          btnJoinRoom = document.getElementById("btnJoinRoom"), 
+          messageInput = document.getElementById("messageInput"), 
+          sendBtn = document.getElementById("sendBtn"), 
+          messagesDiv = document.getElementById("messages"), 
+          copyLinkBtn = document.getElementById("copyLinkBtn"), 
+          exitBtn = document.getElementById("exitBtn"), 
+          clearBtn = document.getElementById("clearBtn"), 
+          otherInfo = document.getElementById("otherInfo"), 
+          emojiBtn = document.getElementById("emojiBtn"), 
+          emojiPicker = document.getElementById("emojiPicker");
 
     const isOnlyEmoji = (text) => {
         const cleanText = text.trim();
@@ -39,16 +52,20 @@ async function startApp() {
                 if (change.type === "added") {
                     const data = change.doc.data();
                     const isMy = (data.sender.trim().toLowerCase() === myNickname.trim().toLowerCase());
-                    
-                    // Logica orario: se createdAt è null (messaggio appena inviato), usa l'orario locale
                     const time = data.createdAt ? data.createdAt.toDate().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
                     
                     const msgEl = document.createElement("div");
                     msgEl.className = `message ${isMy ? 'sent' : 'received'}`;
                     const emojiClass = isOnlyEmoji(data.text) ? ' emoji-only' : '';
                     
-                    // Inserimento corretto nel DOM
-                    msgEl.innerHTML = `<span class="msg-sender">${isMy ? "Tu" : data.sender}</span><span class="msg-text${emojiClass}">${data.text}</span><span class="msg-time">${time}</span>`;
+                    // CORREZIONE: Qui forziamo il nome in un blocco dedicato e aggiungiamo spazio
+                    msgEl.innerHTML = `
+                        <span class="msg-sender">${isMy ? "Tu" : data.sender}</span>
+                        <div class="msg-content">
+                            <span class="msg-text${emojiClass}">${data.text}</span>
+                            <span class="msg-time">${time}</span>
+                        </div>
+                    `;
                     
                     messagesDiv.appendChild(msgEl);
                     messagesDiv.scrollTop = messagesDiv.scrollHeight;
