@@ -39,14 +39,15 @@ async function startApp() {
                 if (change.type === "added") {
                     const data = change.doc.data();
                     const isMy = (data.sender.trim().toLowerCase() === myNickname.trim().toLowerCase());
-                    // Formattazione orario
-                    const time = data.createdAt ? data.createdAt.toDate().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : "";
+                    
+                    // Logica orario: se createdAt è null (messaggio appena inviato), usa l'orario locale
+                    const time = data.createdAt ? data.createdAt.toDate().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
                     
                     const msgEl = document.createElement("div");
                     msgEl.className = `message ${isMy ? 'sent' : 'received'}`;
                     const emojiClass = isOnlyEmoji(data.text) ? ' emoji-only' : '';
                     
-                    // Reinserito span msg-time
+                    // Inserimento corretto nel DOM
                     msgEl.innerHTML = `<span class="msg-sender">${isMy ? "Tu" : data.sender}</span><span class="msg-text${emojiClass}">${data.text}</span><span class="msg-time">${time}</span>`;
                     
                     messagesDiv.appendChild(msgEl);
@@ -59,6 +60,7 @@ async function startApp() {
     btnCreateRoom.onclick = async () => { await joinRoom(getRoomId(), "user1", nicknameInput.value.trim()); };
     btnJoinRoom.onclick = async () => { await joinRoom(getRoomId(), "user2", nicknameInput.value.trim()); };
     sendBtn.onclick = sendMessage;
+    messageInput.onkeypress = (e) => { if (e.key === "Enter") sendMessage(); };
     emojiBtn.onclick = () => emojiPicker.classList.toggle("hidden");
     emojiPicker.querySelectorAll('span').forEach(e => e.onclick = () => { messageInput.value += e.textContent; emojiPicker.classList.add("hidden"); });
     clearBtn.onclick = async () => { const s = await getDocs(collection(window.chpriv.db, "messages", getRoomId(), "list")); s.forEach(d => deleteDoc(doc(window.chpriv.db, "messages", getRoomId(), "list", d.id))); messagesDiv.innerHTML = ""; };
