@@ -6,7 +6,6 @@ async function startApp() {
     await initFirebase();
     const startupDiv = document.getElementById("startup"), chatContainer = document.getElementById("chatContainer"), nicknameInput = document.getElementById("nickname"), btnCreateRoom = document.getElementById("btnCreateRoom"), btnJoinRoom = document.getElementById("btnJoinRoom"), messageInput = document.getElementById("messageInput"), sendBtn = document.getElementById("sendBtn"), messagesDiv = document.getElementById("messages"), copyLinkBtn = document.getElementById("copyLinkBtn"), exitBtn = document.getElementById("exitBtn"), clearBtn = document.getElementById("clearBtn"), otherInfo = document.getElementById("otherInfo"), emojiBtn = document.getElementById("emojiBtn"), emojiPicker = document.getElementById("emojiPicker");
 
-    // Funzione aggiornata per rilevare le emoji
     const isOnlyEmoji = (text) => {
         const cleanText = text.trim();
         if (cleanText === "") return false;
@@ -40,10 +39,16 @@ async function startApp() {
                 if (change.type === "added") {
                     const data = change.doc.data();
                     const isMy = (data.sender.trim().toLowerCase() === myNickname.trim().toLowerCase());
+                    // Formattazione orario
+                    const time = data.createdAt ? data.createdAt.toDate().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : "";
+                    
                     const msgEl = document.createElement("div");
                     msgEl.className = `message ${isMy ? 'sent' : 'received'}`;
                     const emojiClass = isOnlyEmoji(data.text) ? ' emoji-only' : '';
-                    msgEl.innerHTML = `<span class="msg-sender">${isMy ? "Tu" : data.sender}</span><span class="msg-text${emojiClass}">${data.text}</span>`;
+                    
+                    // Reinserito span msg-time
+                    msgEl.innerHTML = `<span class="msg-sender">${isMy ? "Tu" : data.sender}</span><span class="msg-text${emojiClass}">${data.text}</span><span class="msg-time">${time}</span>`;
+                    
                     messagesDiv.appendChild(msgEl);
                     messagesDiv.scrollTop = messagesDiv.scrollHeight;
                 }
