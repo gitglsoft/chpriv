@@ -2,81 +2,34 @@
 body { font-family: 'Segoe UI', Arial, sans-serif; background-color: #0f172a; color: #f1f5f9; height: 100vh; display: flex; justify-content: center; align-items: center; }
 .hidden { display: none !important; }
 
-/* Login */
 #startup { width: 90%; max-width: 450px; padding: 30px; background-color: #1e293b; border-radius: 20px; text-align: center; }
-#startup .main-logo { max-width: 150px; margin-bottom: 20px; }
 #startup input { width: 100%; padding: 14px; margin-bottom: 12px; border-radius: 10px; background-color: #0f172a; color: white; border: 1px solid #334155; }
 .buttons { display: flex; gap: 10px; }
 button { cursor: pointer; padding: 12px 20px; border-radius: 10px; font-weight: 600; color: white; border: none; }
 #btnCreateRoom { background-color: #059669; flex: 1; }
 #btnJoinRoom { background-color: #2563eb; flex: 1; }
 
-/* Chat Header */
 #chatContainer { width: 100%; height: 100%; display: flex; flex-direction: column; background-color: #0f172a; }
-header { display: flex; align-items: center; justify-content: space-between; padding: 10px 20px; background-color: #1e293b; height: 60px; position: relative; }
-.header-logo { height: 40px; position: absolute; left: 50%; transform: translateX(-50%); }
-#otherInfo { color: #22c55e; font-weight: bold; z-index: 2; }
-.topButtons { display: flex; gap: 8px; z-index: 2; }
+header { display: flex; align-items: center; justify-content: space-between; padding: 10px 20px; background-color: #1e293b; height: 60px; }
+.topButtons { display: flex; gap: 8px; }
 .topButtons button { padding: 6px 12px; font-size: 12px; border-radius: 6px; }
-#copyLinkBtn { background-color: #3b82f6 !important; }
-#clearBtn { background-color: #f59e0b !important; }
-#exitBtn { background-color: #ef4444 !important; }
 
-/* Messaggi - Schema Colori Richiesto */
-.message { 
-    max-width: 70%; 
-    padding: 10px 14px; 
-    border-radius: 18px; 
-    color: inherit; 
-}
+#messages { flex: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 15px; }
 
-/* Messaggio INVIATO (Tu): Testo Arancio su Sfondo Blu */
-.message.sent { 
-    align-self: flex-end; 
-    background-color: #1e3a8a; /* Blu scuro */
-    color: #f97316;           /* Arancio */
-}
+.message { max-width: 70%; padding: 10px 14px; border-radius: 18px; width: fit-content; min-width: 80px; }
+.message.sent { align-self: flex-end; background-color: #1e3a8a; color: #f97316; }
+.message.received { align-self: flex-start; background-color: #f97316; color: #1e3a8a; }
 
-/* Messaggio RICEVUTO (Altro): Testo Blu su Sfondo Arancio */
-.message.received { 
-    align-self: flex-start; 
-    background-color: #f97316; /* Arancio */
-    color: #1e3a8a;           /* Blu scuro */
-}
+.msg-sender { display: block; font-size: 10px; font-weight: bold; margin-bottom: 4px; opacity: 0.8; }
+.msg-time { display: block; font-size: 9px; margin-top: 4px; text-align: right; opacity: 0.7; }
 
-/* Emoji Ingrandite solo in chat */
-.message .msg-text.emoji-only { font-size: 5rem !important; display: block !important; text-align: center !important; padding: 10px 0 !important; }
-/* Emoji barra sempre piccole */
-#emojiPicker span { font-size: 24px !important; cursor: pointer; padding: 5px; display: inline-block; }
+.emoji-only { font-size: 3rem; display: block; text-align: center; }
+#emojiPicker { padding: 10px; background: #1e293b; border-top: 1px solid #334155; }
+#emojiPicker span { font-size: 24px; cursor: pointer; padding: 5px; }
 
 #composer { display: flex; padding: 15px; background-color: #1e293b; gap: 10px; }
 #messageInput { flex: 1; padding: 12px; border-radius: 10px; background-color: #0f172a; color: white; border: 1px solid #334155; }
-#sendBtn { background-color: #059669; padding: 0 25px; }
-/* Assicurati che questo sia presente nel tuo style.css */
-.msg-time { 
-    display: block !important; 
-    font-size: 10px !important; 
-    color: #cbd5e1 !important; 
-    text-align: right !important; 
-    margin-top: 5px !important; 
-}
-.msg-sender { 
-    display: block !important; 
-    font-size: 10px !important; 
-    font-weight: bold; 
-    margin-bottom: 4px; 
-    opacity: 0.8;
-}
+#sendBtn { background-color: #059669; }
 
-.msg-content { 
-    display: flex; 
-    flex-direction: column; 
-}
-
-.msg-time { 
-    display: block !important; 
-    font-size: 9px !important; 
-    margin-top: 4px; 
-    text-align: right; 
-    opacity: 0.7;
-}
+.blur-text { filter: blur(5px); pointer-events: none; }
+.read-btn { background: #6366f1; color: white; border: none; padding: 5px 10px; border-radius: 5px; cursor: pointer; display: block; margin-top: 5px; }
