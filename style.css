@@ -4,20 +4,27 @@ body { font-family: 'Segoe UI', Arial, sans-serif; background-color: #0f172a; co
 
 /* Startup e Loghi */
 #startup { width: 90%; max-width: 450px; padding: 30px; background-color: #1e293b; border-radius: 20px; text-align: center; }
-.main-logo { width: 150px; margin-bottom: 20px; } /* Logo login controllato */
+.main-logo { width: 150px; margin-bottom: 20px; }
 #startup input { width: 100%; padding: 14px; margin-bottom: 12px; border-radius: 10px; background-color: #0f172a; color: white; border: 1px solid #334155; }
 .buttons { display: flex; gap: 10px; }
 
 /* Chat Container */
 #chatContainer { width: 100%; height: 100%; display: flex; flex-direction: column; background-color: #0f172a; }
 header { display: flex; align-items: center; justify-content: space-between; padding: 10px 20px; background-color: #1e293b; height: 60px; }
-.header-logo { height: 40px; width: auto; } /* Logo header piccolo e fisso */
+
+/* Logo Header - Contenuto */
+.header-logo { height: 40px; width: auto; max-width: 150px; object-fit: contain; }
+
+/* Pulsanti Header - Colori specifici */
 .topButtons { display: flex; gap: 8px; }
-.topButtons button { cursor: pointer; padding: 6px 12px; font-size: 12px; border-radius: 6px; font-weight: 600; color: white; border: none; background-color: #334155; }
+.topButtons button { cursor: pointer; padding: 6px 12px; font-size: 12px; border-radius: 6px; font-weight: 600; color: white; border: none; }
+#copyLinkBtn { background-color: #2563eb; } /* Blu */
+#clearBtn { background-color: #f97316; }    /* Arancio */
+#exitBtn { background-color: #ef4444; }     /* Rosso */
 
 #messages { flex: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 15px; }
 
-/* Messaggi - Colori e Dimensioni Corrette */
+/* Messaggi */
 .message { max-width: 70%; padding: 10px 14px; border-radius: 18px; width: fit-content; min-width: 80px; }
 .message.sent { align-self: flex-end; background-color: #1e3a8a; color: #f97316; }
 .message.received { align-self: flex-start; background-color: #f97316; color: #1e3a8a; }
