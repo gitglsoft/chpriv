@@ -31,14 +31,33 @@ async function startApp() {
         startupDiv.classList.add("hidden");
         chatContainer.classList.remove("hidden");
         window.location.hash = `#room=${roomId}`;
-        
+
+        // Imposta la presence quando entri nella stanza
+        const presenceRef = ref(window.chpriv.rtdb, `presence/${roomId}/${role}`);
+        await set(presenceRef, { nickname, online: true });
+
+        // Rimuovi la presence quando chiudi la pagina o ti disconnetti
+        onDisconnect(presenceRef).remove();
+
+        // Listener separato per lo stato di "typing" dell'altro
         onValue(ref(window.chpriv.rtdb, `typing/${roomId}/${otherRole}`), (snap) => {
-            if (snap.val()) { otherInfo.textContent = "Sta scrivendo..."; document.title = "(Sta scrivendo...)"; }
-            else {
-                onValue(ref(window.chpriv.rtdb, `presence/${roomId}/${otherRole}`), (s) => {
-                    const o = s.val();
-                    otherInfo.textContent = o ? o.nickname : "In attesa...";
-                });
+            if (snap.val()) {
+                otherInfo.textContent = "Sta scrivendo...";
+                document.title = "(Sta scrivendo...)";
+            } else {
+                // Resetta il titolo quando l'altro smette di scrivere
+                document.title = "ChPriv";
+            }
+        });
+
+        // Listener separato per la presence dell'altro
+        onValue(ref(window.chpriv.rtdb, `presence/${roomId}/${otherRole}`), (snap) => {
+            const other = snap.val();
+            if (!other) {
+                otherInfo.textContent = "In attesa...";
+                document.title = "ChPriv";
+            } else {
+                otherInfo.textContent = other.nickname;
             }
         });
 
