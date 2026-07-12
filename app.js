@@ -8,9 +8,9 @@ async function startApp() {
 
     const getRoomId = () => { let r = window.location.hash.split("#room=")[1]; if (!r) { r = localStorage.getItem("myRoomId") || `${Math.floor(100+Math.random()*900)}`; localStorage.setItem("myRoomId", r); } return r; };
 
-    // Reset Titolo
     window.addEventListener("focus", () => { document.title = "ChPriv"; });
 
+    // Funzione invio e reset digitazione
     async function sendMessage() {
         const text = messageInput.value.trim();
         if (!text) return;
@@ -19,23 +19,25 @@ async function startApp() {
         remove(ref(window.chpriv.rtdb, `typing/${getRoomId()}/${window.myRole}`));
     }
 
+    // Input per "Sta scrivendo"
+    messageInput.oninput = () => {
+        set(ref(window.chpriv.rtdb, `typing/${getRoomId()}/${window.myRole}`), true);
+        clearTimeout(window.typingTimer);
+        window.typingTimer = setTimeout(() => remove(ref(window.chpriv.rtdb, `typing/${getRoomId()}/${window.myRole}`)), 3000);
+    };
+
     async function joinRoom(roomId, role, nickname) {
         window.myRole = role;
-        // Header: visualizza chi è l'altro utente o stato
         const otherRole = (role === "user1") ? "user2" : "user1";
         
         startupDiv.classList.add("hidden");
         chatContainer.classList.remove("hidden");
         window.location.hash = `#room=${roomId}`;
         
-        onValue(ref(window.chpriv.rtdb, `presence/${roomId}/${otherRole}`), (snap) => {
-            const other = snap.val();
-            otherInfo.textContent = other ? other.nickname : "In attesa...";
-        });
-
+        // Listener per Header (Nome altro utente o stato)
         onValue(ref(window.chpriv.rtdb, `typing/${roomId}/${otherRole}`), (snap) => {
             if (snap.val()) { otherInfo.textContent = "Sta scrivendo..."; document.title = "(Sta scrivendo...)"; }
-            else { 
+            else {
                 onValue(ref(window.chpriv.rtdb, `presence/${roomId}/${otherRole}`), (s) => {
                     const o = s.val();
                     otherInfo.textContent = o ? o.nickname : "In attesa...";
@@ -43,12 +45,13 @@ async function startApp() {
             }
         });
 
+        // Listener Messaggi (RIMOSSO il blocco hasPendingWrites per vedere subito i tuoi messaggi)
         onSnapshot(query(collection(window.chpriv.db, "messages", roomId, "list"), orderBy("createdAt")), (snapshot) => {
             snapshot.docChanges().forEach((change) => {
-                if (change.type === "added" && !change.doc.metadata.hasPendingWrites) {
+                if (change.type === "added") {
                     const data = change.doc.data();
                     const isMy = (data.sender.trim().toLowerCase() === nickname.toLowerCase());
-                    const time = data.createdAt ? data.createdAt.toDate().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                    const time = data.createdAt ? data.createdAt.toDate().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : "ora";
                     
                     const msgEl = document.createElement("div");
                     msgEl.className = `message ${isMy ? 'sent' : 'received'}`;
