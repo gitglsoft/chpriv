@@ -22,11 +22,27 @@ header { display: flex; align-items: center; justify-content: space-between; pad
 #clearBtn { background-color: #f59e0b !important; }
 #exitBtn { background-color: #ef4444 !important; }
 
-/* Messaggi */
-#messages { flex: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 15px; }
-.message { max-width: 70%; padding: 10px 14px; border-radius: 18px; }
-.message.sent { align-self: flex-end; background-color: #0ea5e9; }
-.message.received { align-self: flex-start; background-color: #f97316; }
+/* Messaggi - Schema Colori Richiesto */
+.message { 
+    max-width: 70%; 
+    padding: 10px 14px; 
+    border-radius: 18px; 
+    color: inherit; 
+}
+
+/* Messaggio INVIATO (Tu): Testo Arancio su Sfondo Blu */
+.message.sent { 
+    align-self: flex-end; 
+    background-color: #1e3a8a; /* Blu scuro */
+    color: #f97316;           /* Arancio */
+}
+
+/* Messaggio RICEVUTO (Altro): Testo Blu su Sfondo Arancio */
+.message.received { 
+    align-self: flex-start; 
+    background-color: #f97316; /* Arancio */
+    color: #1e3a8a;           /* Blu scuro */
+}
 
 /* Emoji Ingrandite solo in chat */
 .message .msg-text.emoji-only { font-size: 5rem !important; display: block !important; text-align: center !important; padding: 10px 0 !important; }
