@@ -8,6 +8,9 @@ async function startApp() {
 
     const getRoomId = () => { let r = window.location.hash.split("#room=")[1]; if (!r) { r = localStorage.getItem("myRoomId") || `${Math.floor(100+Math.random()*900)}`; localStorage.setItem("myRoomId", r); } return r; };
 
+    const emojiRegex = /(?:[\u{1F600}-\u{1F64F}]|[\u{1F300}-\u{1F5FF}]|[\u{1F680}-\u{1F6FF}]|[\u{1F1E0}-\u{1F1FF}]|[\u{2600}-\u{26FF}]|[\u{2700}-\u{27BF}]|[\u{FE00}-\u{FE0F}]|[\u{1F900}-\u{1F9FF}]|[\u{1FA00}-\u{1FA6F}]|[\u{1FA70}-\u{1FAFF}]|[\u{200D}]|[\u{20E3}]|[\u{E0020}-\u{E007F}]|[\u{1F1E6}-\u{1F1FF}]){1,2}$/u;
+    const isEmojiOnly = (text) => emojiRegex.test(text.trim());
+
     window.addEventListener("focus", () => { document.title = "ChPriv"; });
 
     async function sendMessage() {
@@ -70,16 +73,17 @@ async function startApp() {
                     
                     const msgEl = document.createElement("div");
                     msgEl.className = `message ${isMy ? 'sent' : 'received'}`;
+                    const emojiClass = isEmojiOnly(data.text) ? ' emoji-large' : '';
                     
                     if (!isMy) {
                         msgEl.innerHTML = `<span class="msg-sender">${data.sender}</span><div class="msg-content"><span class="blur-text">Messaggio criptato</span><button class="read-btn">Leggi</button></div>`;
                         msgEl.querySelector(".read-btn").onclick = (e) => {
-                            e.target.parentElement.innerHTML = `<span class="msg-text">${data.text}</span><span class="msg-time">${time}</span>`;
+                            e.target.parentElement.innerHTML = `<span class="msg-text${emojiClass}">${data.text}</span><span class="msg-time">${time}</span>`;
                             setTimeout(() => msgEl.remove(), 10000);
                         };
                         document.title = "(New)";
                     } else {
-                        msgEl.innerHTML = `<span class="msg-sender">Tu</span><div class="msg-content"><span class="msg-text">${data.text}</span><span class="msg-time">${time}</span></div>`;
+                        msgEl.innerHTML = `<span class="msg-sender">Tu</span><div class="msg-content"><span class="msg-text${emojiClass}">${data.text}</span><span class="msg-time">${time}</span></div>`;
                     }
                     messagesDiv.appendChild(msgEl);
                     messagesDiv.scrollTop = messagesDiv.scrollHeight;
