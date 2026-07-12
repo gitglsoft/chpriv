@@ -8,9 +8,8 @@ async function startApp() {
 
     const getRoomId = () => { let r = window.location.hash.split("#room=")[1]; if (!r) { r = localStorage.getItem("myRoomId") || `${Math.floor(100+Math.random()*900)}`; localStorage.setItem("myRoomId", r); } return r; };
 
-    // Gestione Titolo Dinamico
-    const resetTitle = () => { document.title = "ChPriv"; };
-    window.addEventListener("focus", resetTitle); // Resetta quando torni sulla scheda
+    // Reset Titolo
+    window.addEventListener("focus", () => { document.title = "ChPriv"; });
 
     async function sendMessage() {
         const text = messageInput.value.trim();
@@ -22,29 +21,33 @@ async function startApp() {
 
     async function joinRoom(roomId, role, nickname) {
         window.myRole = role;
-        otherInfo.textContent = nickname || "In attesa...";
+        // Header: visualizza chi è l'altro utente o stato
+        const otherRole = (role === "user1") ? "user2" : "user1";
         
-        const roomRef = ref(window.chpriv.rtdb, `presence/${roomId}/${role}`);
-        onDisconnect(roomRef).remove();
-        set(roomRef, { nickname, joinedAt: Date.now() });
         startupDiv.classList.add("hidden");
         chatContainer.classList.remove("hidden");
         window.location.hash = `#room=${roomId}`;
         
-        // Listener per Digitazione
-        onValue(ref(window.chpriv.rtdb, `typing/${roomId}`), (snap) => {
-            const typing = snap.val() || {};
-            const isTyping = Object.keys(typing).some(k => k !== window.myRole);
-            otherInfo.textContent = isTyping ? "Sta scrivendo..." : (nickname || "In attesa...");
-            document.title = isTyping ? "(Sta scrivendo...)" : "ChPriv";
+        onValue(ref(window.chpriv.rtdb, `presence/${roomId}/${otherRole}`), (snap) => {
+            const other = snap.val();
+            otherInfo.textContent = other ? other.nickname : "In attesa...";
         });
 
-        // Listener per Messaggi
+        onValue(ref(window.chpriv.rtdb, `typing/${roomId}/${otherRole}`), (snap) => {
+            if (snap.val()) { otherInfo.textContent = "Sta scrivendo..."; document.title = "(Sta scrivendo...)"; }
+            else { 
+                onValue(ref(window.chpriv.rtdb, `presence/${roomId}/${otherRole}`), (s) => {
+                    const o = s.val();
+                    otherInfo.textContent = o ? o.nickname : "In attesa...";
+                });
+            }
+        });
+
         onSnapshot(query(collection(window.chpriv.db, "messages", roomId, "list"), orderBy("createdAt")), (snapshot) => {
             snapshot.docChanges().forEach((change) => {
                 if (change.type === "added" && !change.doc.metadata.hasPendingWrites) {
                     const data = change.doc.data();
-                    const isMy = (data.sender.trim().toLowerCase() === nickname.trim().toLowerCase());
+                    const isMy = (data.sender.trim().toLowerCase() === nickname.toLowerCase());
                     const time = data.createdAt ? data.createdAt.toDate().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
                     
                     const msgEl = document.createElement("div");
@@ -56,7 +59,7 @@ async function startApp() {
                             e.target.parentElement.innerHTML = `<span class="msg-text">${data.text}</span><span class="msg-time">${time}</span>`;
                             setTimeout(() => msgEl.remove(), 10000);
                         };
-                        document.title = "(New)"; // Alert Nuovo Messaggio
+                        document.title = "(New)";
                     } else {
                         msgEl.innerHTML = `<span class="msg-sender">Tu</span><div class="msg-content"><span class="msg-text">${data.text}</span><span class="msg-time">${time}</span></div>`;
                     }
