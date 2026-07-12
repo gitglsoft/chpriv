@@ -29,9 +29,10 @@ header { display: flex; align-items: center; justify-content: space-between; pad
 .msg-time { display: block; font-size: 9px; margin-top: 4px; text-align: right; opacity: 0.7; }
 .emoji-only { font-size: 3rem; display: block; text-align: center; margin: 0 auto; }
 #emojiPicker { padding: 10px; background: #1e293b; border-top: 1px solid #334155; display: flex; flex-wrap: wrap; gap: 5px; }
-#emojiPicker span { font-size: 24px; cursor: pointer; padding: 5px; }
+#emojiPicker span { font-size: 20px; cursor: pointer; padding: 4px; }
 
-#composer { display: flex; padding: 15px; background-color: #1e293b; gap: 10px; }
+#composer { display: flex; padding: 15px; background-color: #1e293b; gap: 10px; align-items: center; }
+#emojiBtn { background: none; border: none; font-size: 26px; cursor: pointer; padding: 10px; width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; }
 #messageInput { flex: 1; padding: 12px; border-radius: 10px; background-color: #0f172a; color: white; border: 1px solid #334155; }
 #sendBtn { background-color: #059669; padding: 12px 20px; border-radius: 10px; font-weight: 600; color: white; border: none; cursor: pointer; }
 .blur-text { filter: blur(5px); pointer-events: none; }
