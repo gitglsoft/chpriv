@@ -2,20 +2,22 @@
 body { font-family: 'Segoe UI', Arial, sans-serif; background-color: #0f172a; color: #f1f5f9; height: 100vh; display: flex; justify-content: center; align-items: center; }
 .hidden { display: none !important; }
 
+/* Startup e Loghi */
 #startup { width: 90%; max-width: 450px; padding: 30px; background-color: #1e293b; border-radius: 20px; text-align: center; }
+.main-logo { width: 150px; margin-bottom: 20px; } /* Logo login controllato */
 #startup input { width: 100%; padding: 14px; margin-bottom: 12px; border-radius: 10px; background-color: #0f172a; color: white; border: 1px solid #334155; }
 .buttons { display: flex; gap: 10px; }
-button { cursor: pointer; padding: 12px 20px; border-radius: 10px; font-weight: 600; color: white; border: none; }
-#btnCreateRoom { background-color: #059669; flex: 1; }
-#btnJoinRoom { background-color: #2563eb; flex: 1; }
 
+/* Chat Container */
 #chatContainer { width: 100%; height: 100%; display: flex; flex-direction: column; background-color: #0f172a; }
 header { display: flex; align-items: center; justify-content: space-between; padding: 10px 20px; background-color: #1e293b; height: 60px; }
+.header-logo { height: 40px; width: auto; } /* Logo header piccolo e fisso */
 .topButtons { display: flex; gap: 8px; }
-.topButtons button { padding: 6px 12px; font-size: 12px; border-radius: 6px; }
+.topButtons button { cursor: pointer; padding: 6px 12px; font-size: 12px; border-radius: 6px; font-weight: 600; color: white; border: none; background-color: #334155; }
 
 #messages { flex: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 15px; }
 
+/* Messaggi - Colori e Dimensioni Corrette */
 .message { max-width: 70%; padding: 10px 14px; border-radius: 18px; width: fit-content; min-width: 80px; }
 .message.sent { align-self: flex-end; background-color: #1e3a8a; color: #f97316; }
 .message.received { align-self: flex-start; background-color: #f97316; color: #1e3a8a; }
@@ -23,13 +25,16 @@ header { display: flex; align-items: center; justify-content: space-between; pad
 .msg-sender { display: block; font-size: 10px; font-weight: bold; margin-bottom: 4px; opacity: 0.8; }
 .msg-time { display: block; font-size: 9px; margin-top: 4px; text-align: right; opacity: 0.7; }
 
-.emoji-only { font-size: 3rem; display: block; text-align: center; }
-#emojiPicker { padding: 10px; background: #1e293b; border-top: 1px solid #334155; }
+/* Emoji e Picker */
+.emoji-only { font-size: 3rem; display: block; text-align: center; margin: 0 auto; }
+#emojiPicker { padding: 10px; background: #1e293b; border-top: 1px solid #334155; display: flex; flex-wrap: wrap; gap: 5px; }
 #emojiPicker span { font-size: 24px; cursor: pointer; padding: 5px; }
 
+/* Composer */
 #composer { display: flex; padding: 15px; background-color: #1e293b; gap: 10px; }
 #messageInput { flex: 1; padding: 12px; border-radius: 10px; background-color: #0f172a; color: white; border: 1px solid #334155; }
-#sendBtn { background-color: #059669; }
+#sendBtn { background-color: #059669; padding: 12px 20px; border-radius: 10px; font-weight: 600; color: white; border: none; cursor: pointer; }
 
+/* Blur e Azioni */
 .blur-text { filter: blur(5px); pointer-events: none; }
 .read-btn { background: #6366f1; color: white; border: none; padding: 5px 10px; border-radius: 5px; cursor: pointer; display: block; margin-top: 5px; }
