@@ -10,7 +10,6 @@ async function startApp() {
 
     window.addEventListener("focus", () => { document.title = "ChPriv"; });
 
-    // Funzione invio e reset digitazione
     async function sendMessage() {
         const text = messageInput.value.trim();
         if (!text) return;
@@ -19,7 +18,6 @@ async function startApp() {
         remove(ref(window.chpriv.rtdb, `typing/${getRoomId()}/${window.myRole}`));
     }
 
-    // Input per "Sta scrivendo"
     messageInput.oninput = () => {
         set(ref(window.chpriv.rtdb, `typing/${getRoomId()}/${window.myRole}`), true);
         clearTimeout(window.typingTimer);
@@ -34,7 +32,6 @@ async function startApp() {
         chatContainer.classList.remove("hidden");
         window.location.hash = `#room=${roomId}`;
         
-        // Listener per Header (Nome altro utente o stato)
         onValue(ref(window.chpriv.rtdb, `typing/${roomId}/${otherRole}`), (snap) => {
             if (snap.val()) { otherInfo.textContent = "Sta scrivendo..."; document.title = "(Sta scrivendo...)"; }
             else {
@@ -45,13 +42,12 @@ async function startApp() {
             }
         });
 
-        // Listener Messaggi (RIMOSSO il blocco hasPendingWrites per vedere subito i tuoi messaggi)
         onSnapshot(query(collection(window.chpriv.db, "messages", roomId, "list"), orderBy("createdAt")), (snapshot) => {
             snapshot.docChanges().forEach((change) => {
                 if (change.type === "added") {
                     const data = change.doc.data();
                     const isMy = (data.sender.trim().toLowerCase() === nickname.toLowerCase());
-                    const time = data.createdAt ? data.createdAt.toDate().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : "ora";
+                    const time = data.createdAt ? data.createdAt.toDate().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
                     
                     const msgEl = document.createElement("div");
                     msgEl.className = `message ${isMy ? 'sent' : 'received'}`;
