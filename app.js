@@ -43,14 +43,11 @@ async function startApp() {
         chatContainer.classList.remove("hidden");
         window.location.hash = `#room=${roomId}`;
 
-        // Imposta la presence quando entri nella stanza
         const presenceRef = ref(window.chpriv.rtdb, `presence/${roomId}/${role}`);
         await set(presenceRef, { nickname, online: true });
 
-        // Rimuovi la presence quando chiudi la pagina o ti disconnetti
         onDisconnect(presenceRef).remove();
 
-        // Stato condiviso tra listener
         let otherOnline = false;
         let otherTyping = false;
         let otherNickname = "";
@@ -68,13 +65,11 @@ async function startApp() {
             }
         }
 
-        // Listener per lo stato di "typing" dell'altro
         onValue(ref(window.chpriv.rtdb, `typing/${roomId}/${otherRole}`), (snap) => {
             otherTyping = !!snap.val();
             updateUI();
         });
 
-        // Listener per la presence dell'altro
         onValue(ref(window.chpriv.rtdb, `presence/${roomId}/${otherRole}`), (snap) => {
             const other = snap.val();
             otherOnline = !!other;
