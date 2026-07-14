@@ -11,7 +11,14 @@ async function startApp() {
     const emojiRegex = /(?:[\u{1F600}-\u{1F64F}]|[\u{1F300}-\u{1F5FF}]|[\u{1F680}-\u{1F6FF}]|[\u{1F1E0}-\u{1F1FF}]|[\u{2600}-\u{26FF}]|[\u{2700}-\u{27BF}]|[\u{FE00}-\u{FE0F}]|[\u{1F900}-\u{1F9FF}]|[\u{1FA00}-\u{1FA6F}]|[\u{1FA70}-\u{1FAFF}]|[\u{200D}]|[\u{20E3}]|[\u{E0020}-\u{E007F}]|[\u{1F1E6}-\u{1F1FF}]){1,2}$/u;
     const isEmojiOnly = (text) => emojiRegex.test(text.trim());
 
-    window.addEventListener("focus", () => { document.title = "ChPriv"; });
+    window.addEventListener("focus", () => {
+        window.hasNewMessage = false;
+        if (window.myRole) {
+            document.title = otherInfo.textContent !== "In attesa..." ? otherInfo.textContent : "ChPriv";
+        } else {
+            document.title = "ChPriv";
+        }
+    });
 
     async function sendMessage() {
         const text = messageInput.value.trim();
@@ -30,7 +37,8 @@ async function startApp() {
     async function joinRoom(roomId, role, nickname) {
         window.myRole = role;
         const otherRole = (role === "user1") ? "user2" : "user1";
-        
+        window.myNickname = nickname;
+
         startupDiv.classList.add("hidden");
         chatContainer.classList.remove("hidden");
         window.location.hash = `#room=${roomId}`;
@@ -42,26 +50,36 @@ async function startApp() {
         // Rimuovi la presence quando chiudi la pagina o ti disconnetti
         onDisconnect(presenceRef).remove();
 
-        // Listener separato per lo stato di "typing" dell'altro
-        onValue(ref(window.chpriv.rtdb, `typing/${roomId}/${otherRole}`), (snap) => {
-            if (snap.val()) {
-                otherInfo.textContent = "Sta scrivendo...";
-                document.title = "(Sta scrivendo...)";
-            } else {
-                // Resetta il titolo quando l'altro smette di scrivere
-                document.title = "ChPriv";
-            }
-        });
+        // Stato condiviso tra listener
+        let otherOnline = false;
+        let otherTyping = false;
+        let otherNickname = "";
 
-        // Listener separato per la presence dell'altro
-        onValue(ref(window.chpriv.rtdb, `presence/${roomId}/${otherRole}`), (snap) => {
-            const other = snap.val();
-            if (!other) {
+        function updateUI() {
+            if (otherTyping) {
+                otherInfo.textContent = "Sta scrivendo...";
+                document.title = otherOnline ? `(${otherNickname} scrive...)` : "(Sta scrivendo...)";
+            } else if (otherOnline) {
+                otherInfo.textContent = otherNickname;
+                document.title = window.hasNewMessage ? "(Nuovo messaggio)" : otherNickname;
+            } else {
                 otherInfo.textContent = "In attesa...";
                 document.title = "ChPriv";
-            } else {
-                otherInfo.textContent = other.nickname;
             }
+        }
+
+        // Listener per lo stato di "typing" dell'altro
+        onValue(ref(window.chpriv.rtdb, `typing/${roomId}/${otherRole}`), (snap) => {
+            otherTyping = !!snap.val();
+            updateUI();
+        });
+
+        // Listener per la presence dell'altro
+        onValue(ref(window.chpriv.rtdb, `presence/${roomId}/${otherRole}`), (snap) => {
+            const other = snap.val();
+            otherOnline = !!other;
+            otherNickname = other ? other.nickname : "";
+            updateUI();
         });
 
         onSnapshot(query(collection(window.chpriv.db, "messages", roomId, "list"), orderBy("createdAt")), (snapshot) => {
@@ -70,18 +88,19 @@ async function startApp() {
                     const data = change.doc.data();
                     const isMy = (data.sender.trim().toLowerCase() === nickname.toLowerCase());
                     const time = data.createdAt ? data.createdAt.toDate().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-                    
+
                     const msgEl = document.createElement("div");
                     msgEl.className = `message ${isMy ? 'sent' : 'received'}`;
                     const emojiClass = isEmojiOnly(data.text) ? ' emoji-large' : '';
-                    
+
                     if (!isMy) {
                         msgEl.innerHTML = `<span class="msg-sender">${data.sender}</span><div class="msg-content"><span class="blur-text">Messaggio criptato</span><button class="read-btn">Leggi</button></div>`;
                         msgEl.querySelector(".read-btn").onclick = (e) => {
                             e.target.parentElement.innerHTML = `<span class="msg-text${emojiClass}">${data.text}</span><span class="msg-time">${time}</span>`;
                             setTimeout(() => msgEl.remove(), 10000);
                         };
-                        document.title = "(New)";
+                        window.hasNewMessage = true;
+                        updateUI();
                     } else {
                         msgEl.innerHTML = `<span class="msg-sender">Tu</span><div class="msg-content"><span class="msg-text${emojiClass}">${data.text}</span><span class="msg-time">${time}</span></div>`;
                     }
