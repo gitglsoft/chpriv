@@ -18,9 +18,19 @@ export const db = getFirestore(app);
 export const rtdb = getDatabase(app, "https://chpriv-8a3da-default-rtdb.europe-west1.firebasedatabase.app");
 
 export async function initFirebase() {
-  await signInAnonymously(auth);
-  console.log("Firebase inizializzato correttamente");
+  try {
+    await signInAnonymously(auth);
+    console.log("Firebase inizializzato correttamente");
+  } catch (e) {
+    console.error("Errore autenticazione Firebase:", e);
+    document.body.innerHTML = `<div style="padding:40px;text-align:center;font-family:sans-serif;background:#1e293b;color:#f1f5f9;height:100vh;display:flex;flex-direction:column;justify-content:center;">
+      <h2>Errore di connessione</h2>
+      <p style="color:#f87171;">${e.code}: ${e.message}</p>
+      <p style="margin-top:20px;color:#94a3b8;">Verifica che il dominio sia autorizzato in Firebase Console → Authentication → Settings → Authorized domains</p>
+    </div>`;
+    throw e;
+  }
 }
 
 // Esponiamo le funzioni necessarie per app.js
-window.chpriv = { db, rtdb, ref, set, get, onValue, onDisconnect };
+window.chpriv = { db, rtdb, ref, set, get, onValue, onDisconnect, auth };

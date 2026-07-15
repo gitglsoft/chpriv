@@ -43,10 +43,24 @@ async function startApp() {
         chatContainer.classList.remove("hidden");
         window.location.hash = `#room=${roomId}`;
 
+        // Diagnostiche RTDB
+        console.log(`[DIAG] Stanza: ${roomId} | Ruolo: ${role} | Nick: ${nickname}`);
+        console.log(`[DIAG] Auth UID: ${window.chpriv.auth?.currentUser?.uid || "non autenticato"}`);
+
         const presenceRef = ref(window.chpriv.rtdb, `presence/${roomId}/${role}`);
-        await set(presenceRef, { nickname, online: true });
+        try {
+            await set(presenceRef, { nickname, online: true });
+            console.log(`[DIAG] Presence scritta OK per ${role}`);
+        } catch (e) {
+            console.error(`[DIAG] Errore scrittura presence:`, e);
+        }
 
         onDisconnect(presenceRef).remove();
+
+        // Verifica connessione RTDB
+        onValue(ref(window.chpriv.rtdb, ".info/connected"), (snap) => {
+            console.log(`[DIAG] RTDB connesso: ${snap.val()}`);
+        });
 
         let otherOnline = false;
         let otherTyping = false;
@@ -67,6 +81,7 @@ async function startApp() {
 
         onValue(ref(window.chpriv.rtdb, `typing/${roomId}/${otherRole}`), (snap) => {
             otherTyping = !!snap.val();
+            console.log(`[DIAG] Typing ${otherRole}: ${snap.val()}`);
             updateUI();
         });
 
@@ -74,6 +89,7 @@ async function startApp() {
             const other = snap.val();
             otherOnline = !!other;
             otherNickname = other ? other.nickname : "";
+            console.log(`[DIAG] Presence ${otherRole}:`, other);
             updateUI();
         });
 
