@@ -2,7 +2,6 @@ import { collection, addDoc, serverTimestamp, query, onSnapshot, deleteDoc, doc,
 import { ref, set, get, onValue, onDisconnect, remove } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-database.js";
 import { initFirebase } from "./firebase.js";
 
-// Funzione di utilità per evitare problemi di rendering con caratteri speciali
 function escapeHtml(text) {
     if (!text) return "";
     const map = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' };
@@ -22,7 +21,6 @@ async function startApp() {
           emojiBtn = document.getElementById("emojiBtn"), 
           emojiPicker = document.getElementById("emojiPicker");
 
-    // Gestione robusta dell'ID stanza dall'URL hash o generazione univoca
     const getRoomId = () => { 
         let match = window.location.hash.match(/#room=([^&]+)/);
         if (match && match[1]) {
@@ -36,14 +34,13 @@ async function startApp() {
         return r; 
     };
 
-    // Regex per rilevare se il messaggio è composto solo da emoji
     const emojiRegex = /^(?:[\u{1F600}-\u{1F64F}]|[\u{1F300}-\u{1F5FF}]|[\u{1F680}-\u{1F6FF}]|[\u{1F1E0}-\u{1F1FF}]|[\u{2600}-\u{26FF}]|[\u{2700}-\u{27BF}]|[\u{FE00}-\u{FE0F}]|[\u{1F900}-\u{1F9FF}]|[\u{1FA00}-\u{1FA6F}]|[\u{1FA70}-\u{1FAFF}]|[\u{200D}]|[\u{20E3}]|[\u{E0020}-\u{E007F}]|[\u{1F1E6}-\u{1F1FF}])+$/u;
     const isEmojiOnly = (text) => text ? emojiRegex.test(text.trim()) : false;
 
     window.addEventListener("focus", () => {
         window.hasNewMessage = false;
-        if (window.myRole) {
-            document.title = otherInfo.textContent !== "In attesa..." ? otherInfo.textContent : "ChPriv";
+        if (window.myRole && window.otherNicknameOnline) {
+            document.title = window.otherNicknameOnline;
         } else {
             document.title = "ChPriv";
         }
@@ -112,12 +109,14 @@ async function startApp() {
         const presenceRef = ref(window.chpriv.rtdb, `presence/${roomId}/${role}`);
         await set(presenceRef, { nickname: currentNickname, online: true });
         onDisconnect(presenceRef).remove();
+        onDisconnect(ref(window.chpriv.rtdb, `typing/${roomId}/${role}`)).remove();
 
         let otherOnline = false;
         let otherTyping = false;
         let otherNickname = "";
 
         function updateUI() {
+            window.otherNicknameOnline = otherNickname;
             if (otherTyping) {
                 otherInfo.textContent = "Sta scrivendo...";
                 document.title = otherOnline ? `(${otherNickname} scrive...)` : "(Sta scrivendo...)";
@@ -142,9 +141,7 @@ async function startApp() {
             updateUI();
         });
 
-        // Ascolto dei messaggi senza filtri rigidi di ordinamento lato server per evitare blocchi sul timestamp
         onSnapshot(collection(window.chpriv.db, "messages", roomId, "list"), (snapshot) => {
-            // Svuota il contenitore e riordina i documenti localmente per sicurezza
             messagesDiv.innerHTML = "";
             
             const docs = [];
@@ -152,7 +149,6 @@ async function startApp() {
                 docs.push({ id: docSnap.id, ...docSnap.data() });
             });
 
-            // Ordinamento basato sul timestamp (gestendo anche eventuali messaggi appena creati senza timestamp immediato)
             docs.sort((a, b) => {
                 const timeA = a.createdAt ? a.createdAt.toMillis() : 0;
                 const timeB = b.createdAt ? b.createdAt.toMillis() : 0;
@@ -180,7 +176,14 @@ async function startApp() {
                             const contentDiv = e.target.parentElement;
                             if (contentDiv) {
                                 contentDiv.innerHTML = `<span class="msg-text${emojiClass}">${escapeHtml(data.text)}</span><span class="msg-time">${time}</span>`;
-                                setTimeout(() => { if (msgEl.parentNode) msgEl.remove(); }, 10000);
+                                // Auto-eliminazione dal database dopo 10 secondi dalla lettura
+                                setTimeout(async () => {
+                                    try {
+                                        await deleteDoc(doc(window.chpriv.db, "messages", roomId, "list", data.id));
+                                    } catch (err) {
+                                        console.error("Errore cancellazione messaggio effimero:", err);
+                                    }
+                                }, 10000);
                             }
                         };
                     }
