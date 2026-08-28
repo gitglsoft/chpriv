@@ -1,4 +1,4 @@
-import { collection, addDoc, serverTimestamp, query, orderBy, onSnapshot, deleteDoc, doc, getDocs } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore.js";
+import { collection, addDoc, serverTimestamp, query, onSnapshot, deleteDoc, doc, getDocs } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore.js";
 import { ref, set, get, onValue, onDisconnect, remove } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-database.js";
 import { initFirebase } from "./firebase.js";
 
@@ -54,14 +54,17 @@ async function startApp() {
         const currentNickname = nicknameInput.value.trim();
         if (!text || !currentNickname) return;
         
-        await addDoc(collection(window.chpriv.db, "messages", getRoomId(), "list"), { 
-            text, 
-            sender: currentNickname, 
-            createdAt: serverTimestamp() 
-        });
-        messageInput.value.value = ""; // correzione rapida per pulire il campo
-        messageInput.value = "";
-        remove(ref(window.chpriv.rtdb, `typing/${getRoomId()}/${window.myRole}`));
+        try {
+            await addDoc(collection(window.chpriv.db, "messages", getRoomId(), "list"), { 
+                text, 
+                sender: currentNickname, 
+                createdAt: serverTimestamp() 
+            });
+            messageInput.value = "";
+            remove(ref(window.chpriv.rtdb, `typing/${getRoomId()}/${window.myRole}`));
+        } catch (error) {
+            console.error("Errore durante l'invio del messaggio:", error);
+        }
     }
 
     messageInput.oninput = () => {
@@ -139,41 +142,55 @@ async function startApp() {
             updateUI();
         });
 
-        onSnapshot(query(collection(window.chpriv.db, "messages", roomId, "list"), orderBy("createdAt")), (snapshot) => {
-            snapshot.docChanges().forEach((change) => {
-                if (change.type === "added") {
-                    const data = change.doc.data();
-                    if (!data || !data.text) return;
-                    
-                    // Confronto corretto basato sul nickname salvato nella sessione
-                    const isMy = (data.sender && window.myNickname && data.sender.trim().toLowerCase() === window.myNickname.toLowerCase());
-                    const time = data.createdAt ? data.createdAt.toDate().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-
-                    const msgEl = document.createElement("div");
-                    msgEl.className = `message ${isMy ? 'sent' : 'received'}`;
-                    const emojiClass = isEmojiOnly(data.text) ? ' emoji-large' : '';
-
-                    if (!isMy) {
-                        msgEl.innerHTML = `<span class="msg-sender">${escapeHtml(data.sender || "Anonimo")}</span><div class="msg-content"><span class="blur-text">Messaggio criptato</span><button class="read-btn">Leggi</button></div>`;
-                        const readBtn = msgEl.querySelector(".read-btn");
-                        if (readBtn) {
-                            readBtn.onclick = (e) => {
-                                const contentDiv = e.target.parentElement;
-                                if (contentDiv) {
-                                    contentDiv.innerHTML = `<span class="msg-text${emojiClass}">${escapeHtml(data.text)}</span><span class="msg-time">${time}</span>`;
-                                    setTimeout(() => { if (msgEl.parentNode) msgEl.remove(); }, 10000);
-                                }
-                            };
-                        }
-                        window.hasNewMessage = true;
-                        updateUI();
-                    } else {
-                        msgEl.innerHTML = `<span class="msg-sender">Tu</span><div class="msg-content"><span class="msg-text${emojiClass}">${escapeHtml(data.text)}</span><span class="msg-time">${time}</span></div>`;
-                    }
-                    messagesDiv.appendChild(msgEl);
-                    messagesDiv.scrollTop = messagesDiv.scrollHeight;
-                }
+        // Ascolto dei messaggi senza filtri rigidi di ordinamento lato server per evitare blocchi sul timestamp
+        onSnapshot(collection(window.chpriv.db, "messages", roomId, "list"), (snapshot) => {
+            // Svuota il contenitore e riordina i documenti localmente per sicurezza
+            messagesDiv.innerHTML = "";
+            
+            const docs = [];
+            snapshot.forEach((docSnap) => {
+                docs.push({ id: docSnap.id, ...docSnap.data() });
             });
+
+            // Ordinamento basato sul timestamp (gestendo anche eventuali messaggi appena creati senza timestamp immediato)
+            docs.sort((a, b) => {
+                const timeA = a.createdAt ? a.createdAt.toMillis() : 0;
+                const timeB = b.createdAt ? b.createdAt.toMillis() : 0;
+                return timeA - timeB;
+            });
+
+            docs.forEach((data) => {
+                if (!data || !data.text) return;
+                
+                const isMy = (data.sender && window.myNickname && data.sender.trim().toLowerCase() === window.myNickname.toLowerCase());
+                let time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                if (data.createdAt && typeof data.createdAt.toDate === 'function') {
+                    time = data.createdAt.toDate().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                }
+
+                const msgEl = document.createElement("div");
+                msgEl.className = `message ${isMy ? 'sent' : 'received'}`;
+                const emojiClass = isEmojiOnly(data.text) ? ' emoji-large' : '';
+
+                if (!isMy) {
+                    msgEl.innerHTML = `<span class="msg-sender">${escapeHtml(data.sender || "Anonimo")}</span><div class="msg-content"><span class="blur-text">Messaggio criptato</span><button class="read-btn">Leggi</button></div>`;
+                    const readBtn = msgEl.querySelector(".read-btn");
+                    if (readBtn) {
+                        readBtn.onclick = (e) => {
+                            const contentDiv = e.target.parentElement;
+                            if (contentDiv) {
+                                contentDiv.innerHTML = `<span class="msg-text${emojiClass}">${escapeHtml(data.text)}</span><span class="msg-time">${time}</span>`;
+                                setTimeout(() => { if (msgEl.parentNode) msgEl.remove(); }, 10000);
+                            }
+                        };
+                    }
+                } else {
+                    msgEl.innerHTML = `<span class="msg-sender">Tu</span><div class="msg-content"><span class="msg-text${emojiClass}">${escapeHtml(data.text)}</span><span class="msg-time">${time}</span></div>`;
+                }
+                messagesDiv.appendChild(msgEl);
+            });
+
+            messagesDiv.scrollTop = messagesDiv.scrollHeight;
         });
     }
 
