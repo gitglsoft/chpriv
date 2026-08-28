@@ -121,7 +121,7 @@ async function startApp() {
                 otherInfo.textContent = "Sta scrivendo...";
                 document.title = otherOnline ? `(${otherNickname} scrive...)` : "(Sta scrivendo...)";
             } else if (otherOnline) {
-                otherInfo.textContent = otherNickname;
+                otherInfo.textContent = `${otherNickname} - Collegato!`;
                 document.title = window.hasNewMessage ? "(Nuovo messaggio)" : otherNickname;
             } else {
                 otherInfo.textContent = "In attesa...";
@@ -176,7 +176,6 @@ async function startApp() {
                             const contentDiv = e.target.parentElement;
                             if (contentDiv) {
                                 contentDiv.innerHTML = `<span class="msg-text${emojiClass}">${escapeHtml(data.text)}</span><span class="msg-time">${time}</span>`;
-                                // Auto-eliminazione dal database dopo 10 secondi dalla lettura
                                 setTimeout(async () => {
                                     try {
                                         await deleteDoc(doc(window.chpriv.db, "messages", roomId, "list", data.id));
