@@ -5,10 +5,10 @@
 
 body {
     font-family: 'Inter', 'Segoe UI', system-ui, Arial, sans-serif;
-    background: linear-gradient(135deg, #1a0b2e, #16213e, #0f3460, #2d1b4e, #1a0b2e);
+    background: linear-gradient(135deg, #1a0b2e, #3b0764, #0f3460, #7e22ce, #1a0b2e);
     background-size: 400% 400%;
     background-attachment: fixed;
-    animation: gradientShift 20s ease infinite;
+    animation: gradientShift 8s ease infinite;
     color: #f1f5f9;
     height: 100vh;
     display: flex;
