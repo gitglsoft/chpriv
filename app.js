@@ -65,11 +65,14 @@ async function startApp() {
     }
 
     messageInput.oninput = () => {
-        if (!window.myRole) return;
-        set(ref(window.chpriv.rtdb, `typing/${getRoomId()}/${window.myRole}`), true);
-        clearTimeout(window.typingTimer);
-        window.typingTimer = setTimeout(() => remove(ref(window.chpriv.rtdb, `typing/${getRoomId()}/${window.myRole}`)), 3000);
-    };
+    if (!window.myRole) return;
+    set(ref(window.chpriv.rtdb, `typing/${getRoomId()}/${window.myRole}`), true);
+    clearTimeout(window.typingTimer);
+    window.typingTimer = setTimeout(
+        () => remove(ref(window.chpriv.rtdb, `typing/${getRoomId()}/${window.myRole}`)),
+        1500   // era 3000
+    );
+};
 
     async function joinRoom(role) {
         const currentNickname = nicknameInput.value.trim();
@@ -116,17 +119,29 @@ async function startApp() {
         let otherNickname = "";
 
         function updateUI() {
-            window.otherNicknameOnline = otherNickname;
-            if (otherTyping) {
-                otherInfo.textContent = "Sta scrivendo...";
-                document.title = otherOnline ? `(${otherNickname} scrive...)` : "(Sta scrivendo...)";
-            } else if (otherOnline) {
-                otherInfo.textContent = `${otherNickname} - Collegato!`;
-                document.title = window.hasNewMessage ? "(Nuovo messaggio)" : otherNickname;
-            } else {
-                otherInfo.textContent = "In attesa...";
-                document.title = "ChPriv";
-            }
+    window.otherNicknameOnline = otherNickname;
+
+    // Rimuove sempre le classi di stato precedenti
+    otherInfo.classList.remove("waiting", "connected", "typing");
+
+    if (otherTyping && otherOnline) {
+        // ✍️ L'altro sta scrivendo
+        otherInfo.classList.add("typing");
+        otherInfo.textContent = `✍️ ${otherNickname} sta scrivendo...`;
+        document.title = `✍️ ${otherNickname} sta scrivendo... — ChPriv`;
+    } else if (otherOnline) {
+        // 🟢 L'altro è connesso ma non scrive
+        otherInfo.classList.add("connected");
+        otherInfo.textContent = `${otherNickname} connesso!`;
+        document.title = window.hasNewMessage
+            ? `💬 Nuovo messaggio — ChPriv`
+            : `🟢 ${otherNickname} online — ChPriv`;
+    } else {
+        // ⏳ Nessuno connesso
+        otherInfo.classList.add("waiting");
+        otherInfo.textContent = "In attesa...";
+        document.title = "ChPriv";
+			}
         }
 
         onValue(ref(window.chpriv.rtdb, `typing/${roomId}/${otherRole}`), (snap) => {

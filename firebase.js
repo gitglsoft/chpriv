@@ -33,4 +33,4 @@ export async function initFirebase() {
 }
 
 // Esponiamo le funzioni necessarie per app.js
-window.chpriv = { db, rtdb, ref, set, get, onValue, onDisconnect, auth };
+window.chpriv = { db, rtdb, ref, set, get, onValue, onDisconnect, remove, auth };
