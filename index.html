@@ -3,31 +3,43 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ChPriv</title>
+    <title>ChPriv · Chat Effimera</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
+
+    <!-- ==================== STARTUP ==================== -->
     <div id="startup">
-        <img src="logo.png" alt="Logo" class="main-logo">
-        <input type="text" id="nickname" placeholder="Il tuo nickname">
-        <input type="password" id="password" placeholder="Password stanza">
+        <img src="logo.png" alt="ChPriv Logo" class="main-logo">
+        <h1 style="font-size: 22px; margin-bottom: 6px; letter-spacing: 1px;">ChPriv</h1>
+        <p style="font-size: 12px; color: #a78bfa; margin-bottom: 22px; letter-spacing: 0.5px;">
+            🔒 Chat privata · effimera · cifrata
+        </p>
+
+        <input type="text" id="nickname" placeholder="Il tuo nickname" autocomplete="off">
+        <input type="password" id="password" placeholder="Password stanza" autocomplete="off">
+
         <div class="buttons">
-            <button id="btnCreateRoom">CREA CHAT</button>
-            <button id="btnJoinRoom">ENTRA</button>
+            <button id="btnCreateRoom">✨ CREA CHAT</button>
+            <button id="btnJoinRoom">🚪 ENTRA</button>
         </div>
     </div>
 
+    <!-- ==================== CHAT ==================== -->
     <div id="chatContainer" class="hidden">
         <header>
             <div id="otherInfo">In attesa...</div>
             <img src="logo.png" alt="Logo" class="header-logo">
             <div class="topButtons">
-                <button id="copyLinkBtn">Copia Link</button>
-                <button id="clearBtn">Svuota</button>
-                <button id="exitBtn">Esci</button>
+                <button id="copyLinkBtn" title="Copia il link della stanza">🔗 Copia</button>
+                <button id="clearBtn" title="Cancella i messaggi">🧹 Svuota</button>
+                <button id="exitBtn" title="Esci dalla chat">⏻ Esci</button>
             </div>
         </header>
-        
+
         <div id="messages"></div>
 
         <div id="emojiPicker" class="hidden">
@@ -43,11 +55,12 @@
         </div>
 
         <div id="composer">
-            <button id="emojiBtn">😊</button>
+            <button id="emojiBtn" title="Emoji">😊</button>
             <input type="text" id="messageInput" placeholder="Scrivi un messaggio...">
-            <button id="sendBtn">Invia</button>
+            <button id="sendBtn">Invia ➤</button>
         </div>
     </div>
+
     <script type="module" src="app.js"></script>
 </body>
 </html>
