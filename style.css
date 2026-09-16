@@ -1,10 +1,15 @@
 /* ============================================================
+   CHPRIV — STYLE.CSS COMPLETO
+   ============================================================ */
+
+/* ============================================================
    RESET & BASE
    ============================================================ */
 * { margin: 0; padding: 0; box-sizing: border-box; }
 
 body {
     font-family: 'Inter', 'Segoe UI', system-ui, Arial, sans-serif;
+    /* Aurora animata di sfondo */
     background: linear-gradient(135deg, #1a0b2e, #3b0764, #0f3460, #7e22ce, #1a0b2e);
     background-size: 400% 400%;
     background-attachment: fixed;
@@ -16,11 +21,13 @@ body {
     align-items: center;
     overflow: hidden;
 }
+
 @keyframes gradientShift {
     0%   { background-position: 0% 50%; }
     50%  { background-position: 100% 50%; }
     100% { background-position: 0% 50%; }
 }
+
 .hidden { display: none !important; }
 
 /* Scrollbar personalizzata */
@@ -38,7 +45,7 @@ body {
     width: 90%;
     max-width: 450px;
     padding: 40px 30px;
-    background: rgba(30, 27, 75, 0.85);
+    background: rgba(30, 27, 75, 0.75);
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
     border-radius: 24px;
@@ -56,7 +63,7 @@ body {
 }
 
 .main-logo {
-    width: 130px;
+    width: 260px;
     margin-bottom: 25px;
     filter: drop-shadow(0 0 20px rgba(236, 72, 153, 0.6));
     animation: pulse 3s ease-in-out infinite;
@@ -125,7 +132,7 @@ body {
 }
 
 /* ============================================================
-   CHAT CONTAINER
+   CHAT CONTAINER — semitrasparente per mostrare l'aurora dietro
    ============================================================ */
 #chatContainer {
     width: 100%;
@@ -133,11 +140,9 @@ body {
     max-width: 900px;
     display: flex;
     flex-direction: column;
-    /* Sfondo semitrasparente: l'aurora si vede dietro */
     background: rgba(15, 23, 42, 0.45);
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
-    /* Bordo luminoso per staccare dallo sfondo */
     border-left: 1px solid rgba(168, 85, 247, 0.25);
     border-right: 1px solid rgba(168, 85, 247, 0.25);
     box-shadow:
@@ -163,23 +168,77 @@ header {
 }
 
 #otherInfo {
-    font-size: 16pt;
+    font-size: 17pt;
     font-weight: 700;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 45%;
+    transition: all 0.3s ease;
+}
+
+/* Stato: in attesa (grigio corsivo) */
+#otherInfo.waiting {
+    background: linear-gradient(90deg, #94a3b8, #64748b);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    font-style: italic;
+    font-size: 15pt;
+}
+
+/* Stato: connesso (verde + pallino pulsante) */
+#otherInfo.connected {
+    background: linear-gradient(90deg, #22c55e, #06b6d4);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+#otherInfo.connected::before {
+    content: '';
+    display: inline-block;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: #22c55e;
+    margin-right: 10px;
+    box-shadow: 0 0 10px #22c55e;
+    animation: blink 1.8s ease-in-out infinite;
+    vertical-align: middle;
+}
+
+@keyframes blink {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50%      { opacity: 0.4; transform: scale(0.85); }
+}
+
+/* Stato: sta scrivendo (gradiente animato) */
+#otherInfo.typing {
     background: linear-gradient(90deg, #a855f7, #ec4899, #06b6d4);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    max-width: 40%;
+    animation: typingPulse 1.5s ease-in-out infinite;
+}
+
+@keyframes typingPulse {
+    0%, 100% { opacity: 1; }
+    50%      { opacity: 0.55; }
 }
 
 .header-logo {
-    height: 40px;
+    height: 80px;
     width: auto;
     object-fit: contain;
-    filter: drop-shadow(0 0 8px rgba(236, 72, 153, 0.6));
+    filter: drop-shadow(0 0 12px rgba(236, 72, 153, 0.7));
+    transition: transform 0.3s ease, filter 0.3s ease;
+    flex-shrink: 0;
+}
+
+.header-logo:hover {
+    transform: scale(1.05);
+    filter: drop-shadow(0 0 18px rgba(236, 72, 153, 1));
 }
 
 .topButtons { display: flex; gap: 8px; }
@@ -213,9 +272,6 @@ header {
     display: flex;
     flex-direction: column;
     gap: 12px;
-    background:
-        radial-gradient(circle at 10% 10%, rgba(168, 85, 247, 0.08), transparent 40%),
-        radial-gradient(circle at 90% 90%, rgba(236, 72, 153, 0.08), transparent 40%);
 }
 
 .message {
@@ -234,20 +290,26 @@ header {
     to   { opacity: 1; transform: translateY(0) scale(1); }
 }
 
-/* Messaggi inviati: gradiente viola/fucsia */
+/* Messaggi inviati: gradiente viola/fucsia semitrasparente */
 .message.sent {
     align-self: flex-end;
-    background: linear-gradient(135deg, #7c3aed, #ec4899);
+    background: linear-gradient(135deg, rgba(124, 58, 237, 0.85), rgba(236, 72, 153, 0.85));
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
     color: #ffffff;
     border-bottom-right-radius: 4px;
+    box-shadow: 0 4px 15px rgba(168, 85, 247, 0.35);
 }
 
-/* Messaggi ricevuti: gradiente ciano/blu */
+/* Messaggi ricevuti: gradiente ciano/blu semitrasparente */
 .message.received {
     align-self: flex-start;
-    background: linear-gradient(135deg, #0891b2, #3b82f6);
+    background: linear-gradient(135deg, rgba(8, 145, 178, 0.85), rgba(59, 130, 246, 0.85));
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
     color: #ffffff;
     border-bottom-left-radius: 4px;
+    box-shadow: 0 4px 15px rgba(6, 182, 212, 0.35);
 }
 
 .msg-text { display: block; font-size: 14px; line-height: 1.4; }
@@ -301,7 +363,9 @@ header {
    ============================================================ */
 #emojiPicker {
     padding: 12px;
-    background: rgba(30, 27, 75, 0.95);
+    background: rgba(30, 27, 75, 0.85);
+    backdrop-filter: blur(15px);
+    -webkit-backdrop-filter: blur(15px);
     border-top: 1px solid rgba(168, 85, 247, 0.3);
     display: flex;
     flex-wrap: wrap;
@@ -409,24 +473,13 @@ header {
    RESPONSIVE (mobile)
    ============================================================ */
 @media (max-width: 600px) {
-    #otherInfo { font-size: 13pt; max-width: 35%; }
-    .header-logo { height: 32px; }
-    .topButtons button { padding: 6px 10px; font-size: 11px; }
+    header { min-height: 85px; padding: 10px 14px; gap: 10px; }
+    .header-logo { height: 55px; }
+    #otherInfo { font-size: 12pt; max-width: 42%; }
+    #otherInfo.waiting { font-size: 12pt; }
     #messages { padding: 16px 12px; }
     .message { max-width: 85%; }
     #startup { padding: 30px 20px; }
-    .main-logo { width: 100px; }
-}
-.message.sent {
-    background: linear-gradient(135deg, rgba(124, 58, 237, 0.85), rgba(236, 72, 153, 0.85));
-    backdrop-filter: blur(8px);
-    -webkit-backdrop-filter: blur(8px);
-    box-shadow: 0 4px 15px rgba(168, 85, 247, 0.35);
-}
-
-.message.received {
-    background: linear-gradient(135deg, rgba(8, 145, 178, 0.85), rgba(59, 130, 246, 0.85));
-    backdrop-filter: blur(8px);
-    -webkit-backdrop-filter: blur(8px);
-    box-shadow: 0 4px 15px rgba(6, 182, 212, 0.35);
+    .main-logo { width: 180px; }
+    .topButtons button { padding: 6px 10px; font-size: 11px; }
 }
