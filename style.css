@@ -5,8 +5,10 @@
 
 body {
     font-family: 'Inter', 'Segoe UI', system-ui, Arial, sans-serif;
-    background: linear-gradient(135deg, #1a0b2e 0%, #16213e 50%, #0f3460 100%);
+    background: linear-gradient(135deg, #1a0b2e, #16213e, #0f3460, #2d1b4e, #1a0b2e);
+    background-size: 400% 400%;
     background-attachment: fixed;
+    animation: gradientShift 20s ease infinite;
     color: #f1f5f9;
     height: 100vh;
     display: flex;
@@ -14,7 +16,11 @@ body {
     align-items: center;
     overflow: hidden;
 }
-
+@keyframes gradientShift {
+    0%   { background-position: 0% 50%; }
+    50%  { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
 .hidden { display: none !important; }
 
 /* Scrollbar personalizzata */
