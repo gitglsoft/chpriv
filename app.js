@@ -5,10 +5,11 @@ import { initFirebase } from "./firebase.js";
 /* ============================================================
    COSTANTI GLOBALI
    ============================================================ */
-const TTL_MS = 12000;              // 12s senza heartbeat = offline
-const HEARTBEAT_MS = 4000;         // rinfresca lastSeen ogni 4s
-const PRESENCE_CHECK_MS = 3000;    // rivaluta TTL ogni 3s
-const OFFLINE_DEBOUNCE_MS = 1500;  // attesa prima di mostrare "In attesa..."
+const TTL_MS = 12000;                 // 12s senza heartbeat = offline
+const HEARTBEAT_MS = 4000;            // rinfresca lastSeen ogni 4s
+const PRESENCE_CHECK_MS = 3000;       // rivaluta TTL ogni 3s
+const OFFLINE_DEBOUNCE_MS = 1500;     // attesa prima di mostrare "In attesa..."
+const EPHEMERAL_DELETE_MS = 10000;    // autodistruzione messaggio letto: 10s
 
 /* ============================================================
    UTILS
@@ -110,12 +111,11 @@ async function startApp() {
             const otherRole = (role === "user1") ? "user2" : "user1";
             window.myNickname = currentNickname;
 
-            // Salva per ripristino dopo refresh
             sessionStorage.setItem("myRole", role);
             sessionStorage.setItem("myNickname", currentNickname);
             sessionStorage.setItem("myPassword", password);
 
-            // --- Verifica password stanza ---
+            /* ---- Verifica password stanza ---- */
             const roomMetaRef = ref(window.chpriv.rtdb, `rooms/${roomId}`);
             const snapMeta = await get(roomMetaRef);
 
@@ -207,17 +207,13 @@ async function startApp() {
                 }
             }
 
-            /* ============================================================
-               LISTENER TYPING
-               ============================================================ */
+            /* ---- Typing ---- */
             onValue(ref(window.chpriv.rtdb, `typing/${roomId}/${otherRole}`), (snap) => {
                 otherTyping = !!snap.val();
                 updateUI();
             });
 
-            /* ============================================================
-               LISTENER PRESENZA (con debounce sull'offline)
-               ============================================================ */
+            /* ---- Presenza con debounce ---- */
             onValue(ref(window.chpriv.rtdb, `presence/${roomId}/${otherRole}`), (snap) => {
                 const other = snap.val();
                 otherSnapshotCache = other;
@@ -233,22 +229,16 @@ async function startApp() {
                     otherNickname = other.nickname;
                 }
 
-                // Debounce: se online → offline, aspetta prima di aggiornare la UI
-                // (assorbe il refresh dell'altro utente)
                 if (wasOnline && !otherOnline) {
                     clearTimeout(offlineDebounceTimer);
-                    offlineDebounceTimer = setTimeout(() => {
-                        updateUI();
-                    }, OFFLINE_DEBOUNCE_MS);
+                    offlineDebounceTimer = setTimeout(() => updateUI(), OFFLINE_DEBOUNCE_MS);
                 } else {
                     clearTimeout(offlineDebounceTimer);
                     updateUI();
                 }
             });
 
-            /* ============================================================
-               WATCHDOG TTL (con lo stesso debounce)
-               ============================================================ */
+            /* ---- Watchdog TTL ---- */
             if (window.presenceWatchId) clearInterval(window.presenceWatchId);
             window.presenceWatchId = setInterval(() => {
                 const other = otherSnapshotCache;
@@ -275,9 +265,21 @@ async function startApp() {
             /* ============================================================
                MESSAGGI (Firestore)
                ============================================================ */
-            onSnapshot(collection(window.chpriv.db, "messages", roomId, "list"), (snapshot) => {
-                messagesDiv.innerHTML = "";
+            // Set degli ID già decifrati in questa sessione (persiste finché la tab è aperta)
+            const revealedIds = new Set();
 
+            // Traccia l'ultimo numero di messaggi per capire se ne sono arrivati di nuovi
+            let lastMessageCount = 0;
+
+            // Traccia se l'utente era in fondo prima del re-render
+            let wasAtBottom = true;
+
+            // Traccia lo scroll: "sono in fondo?" (con tolleranza di 40px)
+            messagesDiv.addEventListener("scroll", () => {
+                wasAtBottom = (messagesDiv.scrollHeight - messagesDiv.scrollTop - messagesDiv.clientHeight) < 40;
+            });
+
+            onSnapshot(collection(window.chpriv.db, "messages", roomId, "list"), (snapshot) => {
                 const docs = [];
                 snapshot.forEach((docSnap) => {
                     docs.push({ id: docSnap.id, ...docSnap.data() });
@@ -288,6 +290,21 @@ async function startApp() {
                     const timeB = b.createdAt ? b.createdAt.toMillis() : 0;
                     return timeA - timeB;
                 });
+
+                /* ---- Bug 2: titolo "Nuovo messaggio" ---- */
+                const newCount = docs.length;
+                if (newCount > lastMessageCount && document.hidden) {
+                    const lastMsg = docs[docs.length - 1];
+                    const isMyLast = lastMsg && lastMsg.sender && window.myNickname &&
+                                     lastMsg.sender.trim().toLowerCase() === window.myNickname.toLowerCase();
+                    if (!isMyLast) {
+                        window.hasNewMessage = true;
+                    }
+                }
+                lastMessageCount = newCount;
+
+                /* ---- Ricostruzione della lista ---- */
+                messagesDiv.innerHTML = "";
 
                 docs.forEach((data) => {
                     if (!data || !data.text) return;
@@ -300,25 +317,37 @@ async function startApp() {
 
                     const msgEl = document.createElement("div");
                     msgEl.className = `message ${isMy ? 'sent' : 'received'}`;
+                    msgEl.dataset.msgId = data.id;
                     const emojiClass = isEmojiOnly(data.text) ? ' emoji-large' : '';
 
                     if (!isMy) {
-                        msgEl.innerHTML = `<span class="msg-sender">${escapeHtml(data.sender || "Anonimo")}</span><div class="msg-content"><span class="blur-text">Messaggio criptato</span><button class="read-btn">Leggi</button></div>`;
-                        const readBtn = msgEl.querySelector(".read-btn");
-                        if (readBtn) {
-                            readBtn.onclick = (e) => {
-                                const contentDiv = e.target.parentElement;
-                                if (contentDiv) {
+                        /* ---- Bug 1: se già decifrato, mostralo subito decifrato ---- */
+                        if (revealedIds.has(data.id)) {
+                            msgEl.innerHTML = `<span class="msg-sender">${escapeHtml(data.sender || "Anonimo")}</span><div class="msg-content"><span class="msg-text${emojiClass}">${escapeHtml(data.text)}</span><span class="msg-time">${time}</span></div>`;
+                        } else {
+                            msgEl.innerHTML = `<span class="msg-sender">${escapeHtml(data.sender || "Anonimo")}</span><div class="msg-content"><span class="blur-text">Messaggio criptato</span><button class="read-btn">Leggi</button></div>`;
+                            const readBtn = msgEl.querySelector(".read-btn");
+                            if (readBtn) {
+                                readBtn.onclick = (e) => {
+                                    const contentDiv = e.target.parentElement;
+                                    if (!contentDiv) return;
+
+                                    // Segna come decifrato PRIMA di aggiornare il DOM
+                                    revealedIds.add(data.id);
+
                                     contentDiv.innerHTML = `<span class="msg-text${emojiClass}">${escapeHtml(data.text)}</span><span class="msg-time">${time}</span>`;
+
+                                    // Autodistruzione dopo 10s (timer armato una sola volta per messaggio)
                                     setTimeout(async () => {
                                         try {
                                             await deleteDoc(doc(window.chpriv.db, "messages", roomId, "list", data.id));
+                                            revealedIds.delete(data.id);
                                         } catch (err) {
                                             console.error("Errore cancellazione messaggio effimero:", err);
                                         }
-                                    }, 10000);
-                                }
-                            };
+                                    }, EPHEMERAL_DELETE_MS);
+                                };
+                            }
                         }
                     } else {
                         msgEl.innerHTML = `<span class="msg-sender">Tu</span><div class="msg-content"><span class="msg-text${emojiClass}">${escapeHtml(data.text)}</span><span class="msg-time">${time}</span></div>`;
@@ -326,7 +355,10 @@ async function startApp() {
                     messagesDiv.appendChild(msgEl);
                 });
 
-                messagesDiv.scrollTop = messagesDiv.scrollHeight;
+                /* ---- Bug 3: scrolla in fondo SOLO se l'utente era già in fondo ---- */
+                if (wasAtBottom) {
+                    messagesDiv.scrollTop = messagesDiv.scrollHeight;
+                }
             });
 
         } catch (err) {
@@ -353,18 +385,14 @@ async function startApp() {
         messageInput.focus();
     });
 
-    /* ============================================================
-       SVUOTA CHAT
-       ============================================================ */
+    /* ---- Svuota chat ---- */
     document.getElementById("clearBtn").onclick = async () => {
         const s = await getDocs(collection(window.chpriv.db, "messages", getRoomId(), "list"));
         s.forEach(d => deleteDoc(doc(window.chpriv.db, "messages", getRoomId(), "list", d.id)));
         messagesDiv.innerHTML = "";
     };
 
-    /* ============================================================
-       COPIA LINK
-       ============================================================ */
+    /* ---- Copia link ---- */
     document.getElementById("copyLinkBtn").onclick = () => {
         const currentRoom = getRoomId();
         window.location.hash = `#room=${currentRoom}`;
@@ -372,9 +400,7 @@ async function startApp() {
         alert("Link della stanza copiato!");
     };
 
-    /* ============================================================
-       ESCI (cleanup completo)
-       ============================================================ */
+    /* ---- Esci ---- */
     document.getElementById("exitBtn").onclick = async () => {
         clearInterval(window.heartbeatId);
         clearInterval(window.presenceWatchId);
@@ -399,7 +425,6 @@ async function startApp() {
 
     /* ============================================================
        RIPRISTINO SESSIONE DOPO REFRESH
-       (mostra subito la chat per evitare il "lampo" del login)
        ============================================================ */
     const hashMatch = window.location.hash.match(/#room=([^&]+)/);
     const savedRole = sessionStorage.getItem("myRole");
@@ -409,23 +434,19 @@ async function startApp() {
     if (hashMatch && savedRole && savedNickname) {
         console.log("[startApp] Ripristino sessione:", savedRole, savedNickname);
 
-        // 🚀 Mostra SUBITO la chat, nascondi la startup (evita il "lampo")
         startupDiv.classList.add("hidden");
         chatContainer.classList.remove("hidden");
         otherInfo.classList.remove("waiting", "connected", "typing");
         otherInfo.classList.add("waiting");
         otherInfo.textContent = "Riconnessione...";
 
-        // Precompila gli input
         nicknameInput.value = savedNickname;
         if (passwordInput) passwordInput.value = savedPassword || "";
 
-        // Prova a rientrare
         try {
             await joinRoom(savedRole);
         } catch (err) {
             console.error("[startApp] Ripristino fallito:", err);
-            // Se il ripristino fallisce, torna alla schermata di login
             sessionStorage.removeItem("myRole");
             sessionStorage.removeItem("myNickname");
             sessionStorage.removeItem("myPassword");
