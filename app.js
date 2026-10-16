@@ -5,9 +5,9 @@ import { initFirebase } from "./firebase.js";
 /* ============================================================
    COSTANTI GLOBALI
    ============================================================ */
-const TTL_MS = 12000;          // 12s senza heartbeat = offline
-const HEARTBEAT_MS = 4000;     // rinfresca lastSeen ogni 4s
-const PRESENCE_CHECK_MS = 3000; // rivaluta TTL ogni 3s
+const TTL_MS = 12000;
+const HEARTBEAT_MS = 4000;
+const PRESENCE_CHECK_MS = 3000;
 
 /* ============================================================
    UTILS
@@ -92,7 +92,6 @@ async function startApp() {
        JOIN ROOM
        ============================================================ */
     async function joinRoom(role) {
-        // Guard anti doppio-click
         if (window.joining) return;
         window.joining = true;
 
@@ -110,6 +109,11 @@ async function startApp() {
             const otherRole = (role === "user1") ? "user2" : "user1";
             window.myNickname = currentNickname;
 
+            // Salva per ripristino dopo refresh
+            sessionStorage.setItem("myRole", role);
+            sessionStorage.setItem("myNickname", currentNickname);
+            sessionStorage.setItem("myPassword", password);
+
             // --- Verifica password stanza ---
             const roomMetaRef = ref(window.chpriv.rtdb, `rooms/${roomId}`);
             const snapMeta = await get(roomMetaRef);
@@ -123,6 +127,9 @@ async function startApp() {
                     const roomData = snapMeta.val();
                     if (roomData.password && roomData.password !== password) {
                         alert("Password errata!");
+                        sessionStorage.removeItem("myRole");
+                        sessionStorage.removeItem("myNickname");
+                        sessionStorage.removeItem("myPassword");
                         return;
                     }
                 }
@@ -135,12 +142,13 @@ async function startApp() {
             /* ============================================================
                PRESENZA CON HEARTBEAT + TTL
                ============================================================ */
-            const uid = window.chpriv.auth.currentUser?.uid || Math.random().toString(36).slice(2);
+            const uid = (window.chpriv.auth && window.chpriv.auth.currentUser && window.chpriv.auth.currentUser.uid)
+                ? window.chpriv.auth.currentUser.uid
+                : Math.random().toString(36).slice(2);
             window.myUid = uid;
 
             const presenceRef = ref(window.chpriv.rtdb, `presence/${roomId}/${role}`);
 
-            // 1. Scrittura iniziale
             await set(presenceRef, {
                 nickname: currentNickname,
                 online: true,
@@ -148,7 +156,6 @@ async function startApp() {
                 lastSeen: Date.now()
             });
 
-            // 2. onDisconnect: marca offline (NON remove)
             onDisconnect(presenceRef).set({
                 nickname: currentNickname,
                 online: false,
@@ -157,14 +164,12 @@ async function startApp() {
             });
             onDisconnect(ref(window.chpriv.rtdb, `typing/${roomId}/${role}`)).remove();
 
-            // 3. Heartbeat: rinfresca lastSeen ogni 4s
             if (window.heartbeatId) clearInterval(window.heartbeatId);
             window.heartbeatId = setInterval(() => {
                 set(ref(window.chpriv.rtdb, `presence/${roomId}/${role}/lastSeen`), Date.now());
                 set(ref(window.chpriv.rtdb, `presence/${roomId}/${role}/online`), true);
             }, HEARTBEAT_MS);
 
-            // 4. Cleanup su chiusura pulita
             window.addEventListener("beforeunload", () => {
                 clearInterval(window.heartbeatId);
                 clearInterval(window.presenceWatchId);
@@ -181,7 +186,6 @@ async function startApp() {
 
             function updateUI() {
                 window.otherNicknameOnline = otherNickname;
-
                 otherInfo.classList.remove("waiting", "connected", "typing");
 
                 if (otherTyping && otherOnline) {
@@ -201,17 +205,11 @@ async function startApp() {
                 }
             }
 
-            /* ============================================================
-               LISTENER TYPING
-               ============================================================ */
             onValue(ref(window.chpriv.rtdb, `typing/${roomId}/${otherRole}`), (snap) => {
                 otherTyping = !!snap.val();
                 updateUI();
             });
 
-            /* ============================================================
-               LISTENER PRESENZA (con TTL)
-               ============================================================ */
             onValue(ref(window.chpriv.rtdb, `presence/${roomId}/${otherRole}`), (snap) => {
                 const other = snap.val();
                 otherSnapshotCache = other;
@@ -227,9 +225,6 @@ async function startApp() {
                 updateUI();
             });
 
-            /* ============================================================
-               WATCHDOG TTL (rivaluta presenza ogni 3s)
-               ============================================================ */
             if (window.presenceWatchId) clearInterval(window.presenceWatchId);
             window.presenceWatchId = setInterval(() => {
                 const other = otherSnapshotCache;
@@ -302,6 +297,9 @@ async function startApp() {
                 messagesDiv.scrollTop = messagesDiv.scrollHeight;
             });
 
+        } catch (err) {
+            console.error("ERRORE in joinRoom:", err);
+            alert("Errore: " + err.message);
         } finally {
             window.joining = false;
         }
@@ -323,18 +321,12 @@ async function startApp() {
         messageInput.focus();
     });
 
-    /* ============================================================
-       SVUOTA CHAT
-       ============================================================ */
     document.getElementById("clearBtn").onclick = async () => {
         const s = await getDocs(collection(window.chpriv.db, "messages", getRoomId(), "list"));
         s.forEach(d => deleteDoc(doc(window.chpriv.db, "messages", getRoomId(), "list", d.id)));
         messagesDiv.innerHTML = "";
     };
 
-    /* ============================================================
-       COPIA LINK
-       ============================================================ */
     document.getElementById("copyLinkBtn").onclick = () => {
         const currentRoom = getRoomId();
         window.location.hash = `#room=${currentRoom}`;
@@ -342,9 +334,6 @@ async function startApp() {
         alert("Link della stanza copiato!");
     };
 
-    /* ============================================================
-       ESCI (cleanup completo)
-       ============================================================ */
     document.getElementById("exitBtn").onclick = async () => {
         clearInterval(window.heartbeatId);
         clearInterval(window.presenceWatchId);
@@ -359,9 +348,40 @@ async function startApp() {
             }
         }
 
+        sessionStorage.removeItem("myRole");
+        sessionStorage.removeItem("myNickname");
+        sessionStorage.removeItem("myPassword");
+
         window.location.hash = "";
         window.location.reload();
     };
+
+    /* ============================================================
+       RIPRISTINO SESSIONE DOPO REFRESH
+       ============================================================ */
+    const hashMatch = window.location.hash.match(/#room=([^&]+)/);
+    const savedRole = sessionStorage.getItem("myRole");
+    const savedNickname = sessionStorage.getItem("myNickname");
+    const savedPassword = sessionStorage.getItem("myPassword");
+
+    if (hashMatch && savedRole && savedNickname) {
+        console.log("[startApp] Ripristino sessione:", savedRole, savedNickname);
+        nicknameInput.value = savedNickname;
+        if (passwordInput) passwordInput.value = savedPassword || "";
+        await joinRoom(savedRole);
+    }
 }
 
-if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", startApp); else startApp();
+if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", () => {
+        startApp().catch(err => {
+            console.error("ERRORE FATALE in startApp:", err);
+            alert("Errore all'avvio: " + err.message);
+        });
+    });
+} else {
+    startApp().catch(err => {
+        console.error("ERRORE FATALE in startApp:", err);
+        alert("Errore all'avvio: " + err.message);
+    });
+}
