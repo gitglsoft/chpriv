@@ -5,9 +5,10 @@ import { initFirebase } from "./firebase.js";
 /* ============================================================
    COSTANTI GLOBALI
    ============================================================ */
-const TTL_MS = 12000;
-const HEARTBEAT_MS = 4000;
-const PRESENCE_CHECK_MS = 3000;
+const TTL_MS = 12000;              // 12s senza heartbeat = offline
+const HEARTBEAT_MS = 4000;         // rinfresca lastSeen ogni 4s
+const PRESENCE_CHECK_MS = 3000;    // rivaluta TTL ogni 3s
+const OFFLINE_DEBOUNCE_MS = 1500;  // attesa prima di mostrare "In attesa..."
 
 /* ============================================================
    UTILS
@@ -183,6 +184,7 @@ async function startApp() {
             let otherTyping = false;
             let otherNickname = "";
             let otherSnapshotCache = null;
+            let offlineDebounceTimer = null;
 
             function updateUI() {
                 window.otherNicknameOnline = otherNickname;
@@ -205,14 +207,22 @@ async function startApp() {
                 }
             }
 
+            /* ============================================================
+               LISTENER TYPING
+               ============================================================ */
             onValue(ref(window.chpriv.rtdb, `typing/${roomId}/${otherRole}`), (snap) => {
                 otherTyping = !!snap.val();
                 updateUI();
             });
 
+            /* ============================================================
+               LISTENER PRESENZA (con debounce sull'offline)
+               ============================================================ */
             onValue(ref(window.chpriv.rtdb, `presence/${roomId}/${otherRole}`), (snap) => {
                 const other = snap.val();
                 otherSnapshotCache = other;
+
+                const wasOnline = otherOnline;
 
                 if (!other || !other.nickname) {
                     otherOnline = false;
@@ -222,9 +232,23 @@ async function startApp() {
                     otherOnline = other.online === true && fresh;
                     otherNickname = other.nickname;
                 }
-                updateUI();
+
+                // Debounce: se online → offline, aspetta prima di aggiornare la UI
+                // (assorbe il refresh dell'altro utente)
+                if (wasOnline && !otherOnline) {
+                    clearTimeout(offlineDebounceTimer);
+                    offlineDebounceTimer = setTimeout(() => {
+                        updateUI();
+                    }, OFFLINE_DEBOUNCE_MS);
+                } else {
+                    clearTimeout(offlineDebounceTimer);
+                    updateUI();
+                }
             });
 
+            /* ============================================================
+               WATCHDOG TTL (con lo stesso debounce)
+               ============================================================ */
             if (window.presenceWatchId) clearInterval(window.presenceWatchId);
             window.presenceWatchId = setInterval(() => {
                 const other = otherSnapshotCache;
@@ -234,9 +258,17 @@ async function startApp() {
                 const newOnline = other.online === true && fresh;
 
                 if (newOnline !== otherOnline) {
+                    const wasOnline = otherOnline;
                     otherOnline = newOnline;
                     if (!otherNickname && other.nickname) otherNickname = other.nickname;
-                    updateUI();
+
+                    if (wasOnline && !otherOnline) {
+                        clearTimeout(offlineDebounceTimer);
+                        offlineDebounceTimer = setTimeout(() => updateUI(), OFFLINE_DEBOUNCE_MS);
+                    } else {
+                        clearTimeout(offlineDebounceTimer);
+                        updateUI();
+                    }
                 }
             }, PRESENCE_CHECK_MS);
 
@@ -321,12 +353,18 @@ async function startApp() {
         messageInput.focus();
     });
 
+    /* ============================================================
+       SVUOTA CHAT
+       ============================================================ */
     document.getElementById("clearBtn").onclick = async () => {
         const s = await getDocs(collection(window.chpriv.db, "messages", getRoomId(), "list"));
         s.forEach(d => deleteDoc(doc(window.chpriv.db, "messages", getRoomId(), "list", d.id)));
         messagesDiv.innerHTML = "";
     };
 
+    /* ============================================================
+       COPIA LINK
+       ============================================================ */
     document.getElementById("copyLinkBtn").onclick = () => {
         const currentRoom = getRoomId();
         window.location.hash = `#room=${currentRoom}`;
@@ -334,6 +372,9 @@ async function startApp() {
         alert("Link della stanza copiato!");
     };
 
+    /* ============================================================
+       ESCI (cleanup completo)
+       ============================================================ */
     document.getElementById("exitBtn").onclick = async () => {
         clearInterval(window.heartbeatId);
         clearInterval(window.presenceWatchId);
@@ -358,6 +399,7 @@ async function startApp() {
 
     /* ============================================================
        RIPRISTINO SESSIONE DOPO REFRESH
+       (mostra subito la chat per evitare il "lampo" del login)
        ============================================================ */
     const hashMatch = window.location.hash.match(/#room=([^&]+)/);
     const savedRole = sessionStorage.getItem("myRole");
@@ -366,9 +408,30 @@ async function startApp() {
 
     if (hashMatch && savedRole && savedNickname) {
         console.log("[startApp] Ripristino sessione:", savedRole, savedNickname);
+
+        // 🚀 Mostra SUBITO la chat, nascondi la startup (evita il "lampo")
+        startupDiv.classList.add("hidden");
+        chatContainer.classList.remove("hidden");
+        otherInfo.classList.remove("waiting", "connected", "typing");
+        otherInfo.classList.add("waiting");
+        otherInfo.textContent = "Riconnessione...";
+
+        // Precompila gli input
         nicknameInput.value = savedNickname;
         if (passwordInput) passwordInput.value = savedPassword || "";
-        await joinRoom(savedRole);
+
+        // Prova a rientrare
+        try {
+            await joinRoom(savedRole);
+        } catch (err) {
+            console.error("[startApp] Ripristino fallito:", err);
+            // Se il ripristino fallisce, torna alla schermata di login
+            sessionStorage.removeItem("myRole");
+            sessionStorage.removeItem("myNickname");
+            sessionStorage.removeItem("myPassword");
+            chatContainer.classList.add("hidden");
+            startupDiv.classList.remove("hidden");
+        }
     }
 }
 
